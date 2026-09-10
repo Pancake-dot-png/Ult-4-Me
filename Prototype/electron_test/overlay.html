@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@700;900&family=Rajdhani:wght@500;600&family=Quicksand:wght@500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+html, body { width: 100%; height: 100%; overflow: hidden; background: transparent; }
+
+.overlay {
+  position: absolute; inset: 0;
+  pointer-events: none;
+  border: 1px solid var(--ol-border, rgba(255, 31, 143, 0.3));
+}
+
+.score-box {
+  position: absolute;
+  top: 94%; left: 8.8%;
+  display: flex; align-items: baseline; gap: 6px;
+}
+.score-label {
+  font-family: var(--ol-font, 'Rajdhani', sans-serif); font-size: 14px; font-weight: 600;
+  color: var(--ol-dim, rgba(220, 60, 220, 0.9));
+}
+.score-value {
+  font-family: var(--ol-font, 'Rajdhani', sans-serif); font-weight: 700; font-size: 18px;
+  color: var(--ol-text, rgba(220, 60, 220, 1));
+}
+
+.graph-container {
+  position: absolute;
+  top: 95.5%; left: 8.8%; width: 13%; height: 3.5%;
+}
+.graph-container svg { width: 100%; height: 100%; }
+
+.ping-value {
+  position: absolute;
+  top: 99.2%; left: 8.8%;
+  font-family: var(--ol-font, 'Rajdhani', sans-serif); font-size: 11px; font-weight: 600;
+  color: var(--ol-dim, rgba(220, 60, 220, 0.7));
+}
+
+.region-box {
+  position: absolute;
+  border: 1px solid var(--ol-region, rgba(255, 0, 0, 0.6));
+  pointer-events: none;
+  display: none;
+}
+.region-label {
+  position: absolute;
+  font-family: var(--ol-font, 'Rajdhani', sans-serif); font-size: 10px; font-weight: 600;
+  color: var(--ol-region, rgba(255, 0, 0, 0.8));
+  white-space: nowrap;
+  pointer-events: none;
+}
+.region-box.visible { display: block; }
+.region-box.matched {
+  border-color: var(--ol-match, rgba(0, 255, 0, 0.8));
+  background: var(--ol-match-bg, rgba(0, 255, 0, 0.05));
+}
+.region-box.matched .region-label { color: var(--ol-match, rgba(0, 255, 0, 0.8)); }
+
+/* ULT-4-ME scroll banner */
+.ult-banner {
+  position: absolute;
+  top: 95.5%; left: 8.8%; width: 13%; height: 3.5%;
+  overflow: hidden; pointer-events: none; z-index: 5;
+}
+.ult-banner-text {
+  position: absolute; white-space: nowrap;
+  font-family: 'Orbitron', sans-serif; font-weight: 900; font-size: 3vh; line-height: 1;
+  letter-spacing: 0.15em; text-transform: uppercase;
+  color: rgba(255, 215, 0, 0.9);
+  text-shadow: 0 0 8px rgba(255, 215, 0, 0.6), 0 0 20px rgba(255, 215, 0, 0.3);
+  top: 50%; transform: translateY(-50%);
+  animation: ult-scroll 2s linear infinite;
+}
+@keyframes ult-scroll {
+  0% { left: 110%; }
+  100% { left: -100%; }
+}
+</style>
+</head>
+<body>
+<div class="overlay" id="overlay">
+  <div class="score-box">
+    <span class="score-label">Score:</span>
+    <span class="score-value" id="score">0</span>
+  </div>
+  <div class="graph-container">
+    <svg id="graph" viewBox="0 0 200 40" preserveAspectRatio="none">
+      <polyline id="graph-line" fill="none" stroke="url(#graph-grad)" stroke-width="1.5" points=""/>
+      <polygon id="graph-fill" fill="url(#graph-fill-grad)" points=""/>
+      <defs>
+        <linearGradient id="graph-grad" x1="0" y1="0" x2="1" y2="0">
+          <stop id="grad-start" offset="0%" stop-color="rgba(0, 240, 255, 0.6)"/>
+          <stop id="grad-end" offset="100%" stop-color="rgba(255, 31, 143, 0.9)"/>
+        </linearGradient>
+        <linearGradient id="graph-fill-grad" x1="0" y1="0" x2="1" y2="0">
+          <stop id="fill-start" offset="0%" stop-color="rgba(0, 240, 255, 0.05)"/>
+          <stop id="fill-end" offset="100%" stop-color="rgba(255, 31, 143, 0.15)"/>
+        </linearGradient>
+      </defs>
+    </svg>
+  </div>
+  <div class="ult-banner" id="ult-banner"></div>
+  <span class="ping-value" id="ping">0ms</span>
+  <div id="regions-container"></div>
+</div>
+
+<script>
+const { ipcRenderer } = require('electron');
+
+let regionElements = {};
+let regionsMode = 0;
+const GRAPH_POINTS = 100;
+const scoreHistory = new Array(GRAPH_POINTS).fill(0);
+let currentTheme = { family: 'cyberpunk', accent: '#ff1f8f', accent2: '#00f0ff' };
+let ultActive = false;
+
+// Theme definitions for overlay
+const OVERLAY_THEMES = {
+  cyberpunk: {
+    font: "'Rajdhani', sans-serif",
+    text: (a) => a,
+    dim: (a) => a + 'cc',
+    border: (a) => a + '4d',
+    region: 'rgba(255, 0, 0, 0.6)',
+    match: 'rgba(0, 255, 0, 0.8)',
+    matchBg: 'rgba(0, 255, 0, 0.05)',
+  },
+  plush: {
+    font: "'Quicksand', sans-serif",
+    text: (a) => a,
+    dim: (a) => a + 'aa',
+    border: (a) => a + '33',
+    region: 'rgba(180, 100, 160, 0.5)',
+    match: 'rgba(120, 200, 120, 0.7)',
+    matchBg: 'rgba(120, 200, 120, 0.05)',
+  },
+  industrial: {
+    font: "'JetBrains Mono', monospace",
+    text: (a) => a,
+    dim: (a) => a + 'aa',
+    border: (a) => a + '22',
+    region: 'rgba(100, 100, 100, 0.5)',
+    match: (a) => a,
+    matchBg: (a) => a + '15',
+  },
+};
+
+function applyOverlayTheme(family, accent, accent2) {
+  const t = OVERLAY_THEMES[family] || OVERLAY_THEMES.cyberpunk;
+  const root = document.documentElement;
+  root.style.setProperty('--ol-font', t.font);
+  root.style.setProperty('--ol-text', typeof t.text === 'function' ? t.text(accent) : t.text);
+  root.style.setProperty('--ol-dim', typeof t.dim === 'function' ? t.dim(accent) : t.dim);
+  root.style.setProperty('--ol-border', typeof t.border === 'function' ? t.border(accent) : t.border);
+  root.style.setProperty('--ol-region', typeof t.region === 'function' ? t.region(accent) : t.region);
+  root.style.setProperty('--ol-match', typeof t.match === 'function' ? t.match(accent) : t.match);
+  root.style.setProperty('--ol-match-bg', typeof t.matchBg === 'function' ? t.matchBg(accent) : t.matchBg);
+
+  // Update graph gradients
+  document.getElementById('grad-start').setAttribute('stop-color', accent2 + '99');
+  document.getElementById('grad-end').setAttribute('stop-color', accent + 'ee');
+  document.getElementById('fill-start').setAttribute('stop-color', accent2 + '0d');
+  document.getElementById('fill-end').setAttribute('stop-color', accent + '26');
+
+  currentTheme = { family, accent, accent2 };
+}
+
+// Receive theme from main process
+ipcRenderer.on('overlay-theme', (_, theme) => {
+  applyOverlayTheme(theme.family, theme.accent, theme.accent2);
+});
+
+// Receive settings changes
+ipcRenderer.on('overlay-settings', (_, settings) => {
+  regionsMode = settings.show_regions_mode ?? 0;
+  updateRegionVisibility([]);
+});
+
+// Draw region boxes when we receive positions
+ipcRenderer.on('regions', (_, regions) => {
+  const container = document.getElementById('regions-container');
+  container.innerHTML = '';
+  regionElements = {};
+
+  for (const [name, rect] of Object.entries(regions)) {
+    const box = document.createElement('div');
+    box.className = 'region-box';
+    box.style.left = rect.x + 'px';
+    box.style.top = rect.y + 'px';
+    box.style.width = rect.w + 'px';
+    box.style.height = rect.h + 'px';
+
+    const label = document.createElement('div');
+    label.className = 'region-label';
+    label.textContent = name;
+    if (name.includes('Popup')) {
+      label.style.right = (rect.w + 5) + 'px';
+      label.style.top = '0';
+      label.style.left = 'auto';
+    } else {
+      label.style.left = '0';
+      label.style.bottom = (rect.h + 2) + 'px';
+    }
+    box.appendChild(label);
+    container.appendChild(box);
+    regionElements[name] = box;
+  }
+});
+
+function updateRegionVisibility(matchedRegions) {
+  for (const [name, box] of Object.entries(regionElements)) {
+    const isMatched = matchedRegions.includes(name);
+    box.classList.remove('matched', 'visible');
+    if (regionsMode === 1) {
+      box.classList.add('visible');
+      if (isMatched) box.classList.add('matched');
+    } else if (regionsMode === 2) {
+      if (isMatched) box.classList.add('visible', 'matched');
+    }
+  }
+}
+
+ipcRenderer.on('overlay-update', (_, data) => {
+  const { score, ping, detections, matchedRegions } = data;
+  const rounded = Math.round(score);
+
+  document.getElementById('score').textContent = rounded;
+  document.getElementById('ping').textContent = `${Math.round(ping)}ms`;
+
+  updateRegionVisibility(matchedRegions || []);
+
+  // ULT-4-ME banner — scrolls while score >= 100
+  const banner = document.getElementById('ult-banner');
+  if (rounded >= 100 && !ultActive) {
+    ultActive = true;
+    banner.innerHTML = '<div class="ult-banner-text">ULT-4-ME</div>';
+  } else if (rounded < 100 && ultActive) {
+    ultActive = false;
+    banner.innerHTML = '';
+  }
+
+  // Update graph
+  scoreHistory.push(Math.max(0, score));
+  scoreHistory.shift();
+
+  const svgW = 200, svgH = 40;
+  const graphMax = Math.max(100, ...scoreHistory);
+  const linePoints = scoreHistory.map((v, i) => {
+    const x = (i / (GRAPH_POINTS - 1)) * svgW;
+    const y = svgH - Math.min(1, v / graphMax) * svgH;
+    return `${x.toFixed(1)},${y.toFixed(1)}`;
+  }).join(' ');
+
+  const graphLine = document.getElementById('graph-line');
+  const graphFill = document.getElementById('graph-fill');
+  graphLine.setAttribute('points', linePoints);
+  graphFill.setAttribute('points', linePoints + ` ${svgW},${svgH} 0,${svgH}`);
+
+  // Tier effects
+  const { accent, accent2 } = currentTheme;
+  let lineColor, fillColor, strokeWidth, glowSize, glowColor, scoreColor;
+  if (rounded >= 120) {
+    lineColor = '#ffd700'; fillColor = 'rgba(255, 215, 0, 0.15)'; strokeWidth = '3';
+    glowSize = 12; glowColor = 'rgba(255, 215, 0, 0.8)'; scoreColor = 'rgba(255, 215, 0, 0.95)';
+  } else if (rounded >= 90) {
+    lineColor = '#ff4422'; fillColor = 'rgba(255, 68, 34, 0.12)'; strokeWidth = '2.5';
+    glowSize = 8; glowColor = 'rgba(255, 68, 34, 0.7)'; scoreColor = 'rgba(255, 68, 34, 0.95)';
+  } else if (rounded >= 50) {
+    lineColor = accent; fillColor = accent + '1a'; strokeWidth = '2';
+    glowSize = 5; glowColor = accent + '99'; scoreColor = accent + 'f2';
+  } else {
+    lineColor = null; fillColor = null; strokeWidth = '1.5';
+    glowSize = 0; glowColor = 'none'; scoreColor = accent;
+  }
+
+  if (lineColor) { graphLine.setAttribute('stroke', lineColor); graphFill.setAttribute('fill', fillColor); }
+  else { graphLine.setAttribute('stroke', 'url(#graph-grad)'); graphFill.setAttribute('fill', 'url(#graph-fill-grad)'); }
+  graphLine.setAttribute('stroke-width', strokeWidth);
+  graphLine.style.filter = glowSize > 0 ? `drop-shadow(0 0 ${glowSize}px ${glowColor})` : 'none';
+  document.getElementById('score').style.color = scoreColor;
+  document.getElementById('score').style.textShadow = glowSize > 0 ? `0 0 ${glowSize}px ${glowColor}` : 'none';
+});
+</script>
+</body>
+</html>

@@ -1,0 +1,6 @@
+# Dependencies for the Electron app's Python vision and screen-capture workers.
+mss
+numpy
+opencv-python
+Pillow
+pywin32; sys_platform == 'win32'

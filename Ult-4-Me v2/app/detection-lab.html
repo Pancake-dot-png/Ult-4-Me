@@ -1,0 +1,59 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><title>V2 Detection editor</title>
+<style>
+:root{color-scheme:dark;font:14px system-ui;color:#ececf2;background:#101016}*{box-sizing:border-box}body{margin:0;padding:26px;max-width:1200px}h1{font-size:24px;margin:0 0 8px}h2{font-size:16px;margin:0 0 12px}p{color:#b9b9c7;line-height:1.5}header{border-bottom:1px solid #343440;padding-bottom:16px;margin-bottom:20px}.layout{display:grid;grid-template-columns:1fr 330px;gap:26px}label{display:block;margin:12px 0 6px}input,select,button{font:inherit;color:inherit;background:#22222d;border:1px solid #474757;padding:8px;border-radius:5px}button{cursor:pointer}button:hover{border-color:#ee6cbd}button:disabled{opacity:.45;cursor:default}select{max-width:100%;width:100%}.row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}.preview{background:repeating-conic-gradient(#363642 0 25%,#24242e 0 50%) 0/20px 20px;min-height:250px;margin:14px 0;display:flex;align-items:center;justify-content:center;border:1px solid #474757;overflow:auto}canvas{max-width:100%;max-height:400px;image-rendering:pixelated;touch-action:none;cursor:crosshair}.primary{background:#762655;border-color:#d45b9f}aside{border-left:1px solid #343440;padding-left:24px}small{color:#b9b9c7;line-height:1.5;display:block;margin-top:5px}#status{white-space:pre-wrap;padding:12px 0;min-height:44px}#result{white-space:pre-wrap;background:#1b1b25;padding:16px;min-height:90px}input[type=number]{width:100%}li{margin:8px 0;overflow-wrap:anywhere}input[type=range]{width:110px}footer{margin-top:24px;border-top:1px solid #343440;padding-top:16px}
+</style></head><body>
+<header><h1>V2 Detection editor</h1><p>Keep the parts of an icon that matter. Transparent areas are ignored by masked matching.</p><label for="event">Event</label><select id="event"></select></header>
+<div class="layout"><main><h2>Template and mask</h2><div class="row"><button id="import">Choose primary image</button><button id="alternate">Add alternate example</button></div><small>Use images at the configured base resolution (usually 1080p). Imports keep their dimensions and transparency.</small>
+<div class="preview"><canvas id="image" width="1" height="1"></canvas></div>
+<div class="row"><button id="erase">Ignore pixels</button><button id="restore">Restore pixels</button><label>Brush <input id="brush" type="range" min="1" max="60" value="12"></label><button id="reset">Reset edits</button></div>
+<small>Paint on the image to remove its background or changing details. Edits save a new PNG; the source remains intact.</small>
+<label>Editing example</label><select id="example"></select><button id="remove">Remove alternate</button>
+<p id="dimensions"></p><h2>Try it on an image</h2><button id="test">Choose cropped HUD image and test</button><small>Use the same base resolution as the template. This test does not capture your screen or control devices. Timing includes template loading.</small><pre id="result">No test yet.</pre></main>
+<aside><h2>Recognition</h2><label>Matching method</label><select id="mode"><option value="auto">Automatic — alpha-aware</option><option value="masked">Masked structure</option><option value="shape">Shape — ignore color</option><option value="legacy">V1 comparison</option></select>
+<small>Automatic uses masked structure for transparent images and V1 matching for opaque images. Masked structure compares visible light/dark patterns and tolerates brightness changes. Shape compares edges and silhouettes. V1 ignores alpha.</small>
+<label>V2 similarity threshold</label><input id="threshold" type="number" min="0.01" max="1" step="0.01" value="0.9"><small>Higher is stricter. V1 matching keeps the original threshold from Advanced settings. Scores are similarities, not probabilities.</small>
+<label>Size tolerance</label><select id="scale"><option value="0">Exact size — least work</option><option value="0.03">±3% — three sizes</option><option value="0.06">±6% — three sizes</option><option value="0.1">±10% — three sizes</option></select>
+<label>Confirm after checks</label><input id="confirm" type="number" min="1" max="5" step="1" value="1"><small>One is immediate. More checks reduce flicker but add delay and can miss brief events.</small>
+<label>Tolerate missing detection (ms)</label><input id="release" type="number" min="0" max="300" step="25" value="0"><small>Zero ends detection immediately. A brief hold can bridge animation gaps.</small>
+<label>Shape edge tolerance (pixels)</label><input id="edge" type="number" min="0.5" max="5" step="0.5" value="2">
+<footer><button class="primary" id="save">Save detection</button><button id="reload">Apply to running watcher</button><small>Saving updates V2 only. Applying restarts its detector; scoring and device settings are preserved.</small></footer></aside></div><div id="status" role="status"></div>
+<script>
+const {ipcRenderer: ipc}=require('electron');
+const $=id=>document.getElementById(id);
+let config, name, files=[], selected=0, source=null, dirty=false, tool='erase', drawing=false;
+const canvas=$('image'), ctx=canvas.getContext('2d',{willReadFrequently:true});
+const status=text=>$('status').textContent=text;
+async function run(fn){try{await fn();}catch(e){status(e.message);}}
+async function commitImage(){if(!dirty)return;if(!source)throw Error('Choose an image first');files[selected]=await ipc.invoke('lab-save-template',canvas.toDataURL('image/png'));dirty=false;}
+async function showImage(){
+  $('example').replaceChildren(...files.map((f,i)=>new Option((i===0?'Primary: ':'Alternate: ')+f,i)));
+  $('example').value=String(selected);$('remove').disabled=selected===0;
+  if(!files.length){source=null;canvas.width=1;canvas.height=1;return;}
+  const img=new Image();img.src=await ipc.invoke('lab-read-template',files[selected]);await img.decode();
+  canvas.width=img.naturalWidth;canvas.height=img.naturalHeight;
+  const zoom=Math.min(6,600/canvas.width,400/canvas.height);canvas.style.width=`${canvas.width*zoom}px`;canvas.style.height=`${canvas.height*zoom}px`;
+  ctx.drawImage(img,0,0);source=ctx.getImageData(0,0,canvas.width,canvas.height);dirty=false;
+  $('dimensions').textContent=`${canvas.width} × ${canvas.height} pixels · ${files.length}/6 examples`;
+}
+async function loadEvent(){
+  const d=config.detectables[name];files=[d.filename,...(d.examples||[])].filter(Boolean);selected=0;
+  $('mode').value=d.match_mode||'auto';$('threshold').value=d.v2_threshold??.9;$('scale').value=String(d.scale_tolerance||0);
+  $('confirm').value=d.confirm_frames??2;$('release').value=d.release_ms??200;$('edge').value=d.edge_tolerance??2;
+  await showImage();status('');
+}
+function options(){return {filename:files[0],examples:files.slice(1),match_mode:$('mode').value,v2_threshold:Number($('threshold').value),scale_tolerance:Number($('scale').value),confirm_frames:Number($('confirm').value),release_ms:Number($('release').value),edge_tolerance:Number($('edge').value)};}
+$('event').onchange=()=>run(async()=>{if(dirty){$('event').value=name;throw Error('Save or reset image edits before changing events.');}name=$('event').value;await loadEvent();});
+$('example').onchange=()=>run(async()=>{await commitImage();selected=Number($('example').value);await showImage();});
+$('import').onclick=()=>run(async()=>{const file=await ipc.invoke('pick-template');if(file){files[0]=file;selected=0;await showImage();}});
+$('alternate').onclick=()=>run(async()=>{if(!files.length)throw Error('Choose a primary image first');if(files.length>=6)throw Error('Maximum six examples per event');await commitImage();const file=await ipc.invoke('pick-template');if(file){files.push(file);selected=files.length-1;await showImage();}});
+$('remove').onclick=()=>run(async()=>{if(selected>0){files.splice(selected,1);selected=0;await showImage();}});
+$('erase').onclick=()=>{tool='erase';status('Brush removes pixels from matching.');};$('restore').onclick=()=>{tool='restore';status('Brush restores the original pixels.');};
+$('reset').onclick=()=>{if(source){ctx.putImageData(source,0,0);dirty=false;status('Image edits reset.');}};
+function paint(e){if(!source)return;const box=canvas.getBoundingClientRect();const x=(e.clientX-box.left)*canvas.width/box.width,y=(e.clientY-box.top)*canvas.height/box.height,r=Number($('brush').value)/2;const data=ctx.getImageData(0,0,canvas.width,canvas.height);for(let py=Math.max(0,Math.floor(y-r));py<Math.min(canvas.height,y+r);py++)for(let px=Math.max(0,Math.floor(x-r));px<Math.min(canvas.width,x+r);px++){if((px-x)**2+(py-y)**2<=r*r){const i=(py*canvas.width+px)*4;data.data[i+3]=tool==='erase'?0:source.data[i+3];}}ctx.putImageData(data,0,0);dirty=true;}
+canvas.onpointerdown=e=>{drawing=true;canvas.setPointerCapture(e.pointerId);paint(e);};canvas.onpointermove=e=>{if(drawing)paint(e);};canvas.onpointerup=()=>drawing=false;canvas.onpointercancel=()=>drawing=false;
+$('save').onclick=()=>run(async()=>{await commitImage();const o=options();await ipc.invoke('lab-save-options',name,o);Object.assign(config.detectables[name],o);await showImage();status('Saved in V2. Apply when ready to restart the watcher.');});
+$('reload').onclick=()=>run(async()=>{if(dirty)throw Error('Save image edits first');if(!await ipc.invoke('is-vision-running')){status('Watcher is stopped. Saved options will load when you start it.');return;}const r=await ipc.invoke('restart-vision');if(!r.ok)throw Error(r.error);status('Watcher restarted with saved options.');});
+$('test').onclick=()=>run(async()=>{await commitImage();status('Testing…');const r=await ipc.invoke('lab-test',name,options());if(!r){status('Test cancelled.');return;}$('result').textContent=`${r.matched?'MATCH':'NO MATCH'} · similarity ${r.confidence.toFixed(3)} / threshold ${r.threshold}\n${r.mode} · ${r.milliseconds} ms\nBest location: ${r.location.join(', ')} · ${r.filename||'no candidate'}`;status('Offline test finished. No settings were applied.');});
+run(async()=>{config=await ipc.invoke('get-config');$('event').replaceChildren(...Object.keys(config.detectables).sort().map(n=>new Option(n,n)));name=$('event').value;await loadEvent();});
+</script></body></html>

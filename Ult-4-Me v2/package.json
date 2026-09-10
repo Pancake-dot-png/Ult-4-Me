@@ -1,0 +1,53 @@
+{
+  "name": "ult-4-me-v2",
+  "version": "2.0.0",
+  "description": "ULT-4-ME V2 by Pancakes - Overwatch 2 haptic feedback",
+  "main": "app/index.js",
+  "scripts": {
+    "start": "electron .",
+    "test": "node scripts/check-ui.js && node tests/test_panic_audio.js && node tests/test_detection_without_overlay.js && .venv\\Scripts\\python.exe -m unittest discover -s tests -v",
+    "build": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/build.ps1"
+  },
+  "author": "Pancakes",
+  "license": "ISC",
+  "type": "commonjs",
+  "devDependencies": {
+    "electron": "^42.0.1",
+    "electron-builder": "^25.1.8"
+  },
+  "dependencies": {
+    "ws": "^8.20.1"
+  },
+  "build": {
+    "appId": "com.pancakes.ult4me.v2",
+    "productName": "ULT-4-ME V2",
+    "directories": {
+      "output": "dist"
+    },
+    "files": [
+      "app/**/*",
+      "package.json"
+    ],
+    "win": {
+      "target": "dir",
+      "icon": "app/pancake.ico",
+      "sign": false
+    },
+    "forceCodeSigning": false,
+    "asar": true,
+    "extraFiles": [
+      {
+        "from": "templates",
+        "to": "templates"
+      },
+      {
+        "from": "build/vision-worker",
+        "to": "vision-worker"
+      },
+      {
+        "from": "build/capture-screen/capture-screen.exe",
+        "to": "vision-worker/capture-screen.exe"
+      }
+    ]
+  }
+}

@@ -1,0 +1,526 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>Zone Editor</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { width: 100%; height: 100%; overflow: hidden; background: #1a1a1e; color: #eaeaea; font-family: 'Inter', sans-serif; }
+
+.editor {
+  display: grid;
+  grid-template-columns: 1fr 280px;
+  height: 100%;
+}
+
+/* Canvas area */
+.canvas-area {
+  position: relative;
+  overflow: hidden;
+  background: #111;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.canvas-area img {
+  max-width: 100%;
+  max-height: 100%;
+  display: block;
+}
+.canvas-wrapper {
+  position: relative;
+  display: inline-block;
+}
+
+/* Zone boxes */
+.zone-box {
+  position: absolute;
+  border: 2px solid rgba(255, 80, 80, 0.8);
+  background: rgba(255, 80, 80, 0.08);
+  cursor: move;
+  z-index: 10;
+}
+.zone-box.selected {
+  border-color: #00f0ff;
+  background: rgba(0, 240, 255, 0.1);
+}
+.zone-box.disabled {
+  border-color: rgba(255, 80, 80, 0.25);
+  background: rgba(255, 80, 80, 0.02);
+  opacity: 0.4;
+}
+.zone-box .zone-name {
+  position: absolute;
+  top: -18px; left: 0;
+  font-family: 'JetBrains Mono'; font-size: 9px;
+  color: rgba(255, 80, 80, 0.9);
+  white-space: nowrap;
+  pointer-events: none;
+}
+.zone-box.selected .zone-name { color: #00f0ff; }
+
+/* Resize handles */
+.zone-box .handle {
+  position: absolute;
+  width: 8px; height: 8px;
+  background: #fff;
+  border: 1px solid #333;
+  z-index: 11;
+}
+.zone-box .handle-tl { top: -4px; left: -4px; cursor: nw-resize; }
+.zone-box .handle-tr { top: -4px; right: -4px; cursor: ne-resize; }
+.zone-box .handle-bl { bottom: -4px; left: -4px; cursor: sw-resize; }
+.zone-box .handle-br { bottom: -4px; right: -4px; cursor: se-resize; }
+.zone-box .handle-t { top: -4px; left: 50%; transform: translateX(-50%); cursor: n-resize; }
+.zone-box .handle-b { bottom: -4px; left: 50%; transform: translateX(-50%); cursor: s-resize; }
+.zone-box .handle-l { top: 50%; left: -4px; transform: translateY(-50%); cursor: w-resize; }
+.zone-box .handle-r { top: 50%; right: -4px; transform: translateY(-50%); cursor: e-resize; }
+
+/* Sidebar */
+.sidebar {
+  background: #222; border-left: 1px solid #333;
+  display: flex; flex-direction: column;
+  overflow-y: auto;
+}
+.sidebar-hd {
+  padding: 12px 14px;
+  font-family: 'JetBrains Mono'; font-size: 10px; letter-spacing: .12em;
+  text-transform: uppercase; color: #888;
+  border-bottom: 1px solid #333;
+}
+
+.toolbar {
+  padding: 10px 14px;
+  display: flex; gap: 6px; flex-wrap: wrap;
+  border-bottom: 1px solid #333;
+}
+.toolbar button {
+  background: #333; border: 1px solid #444; color: #ddd;
+  font-family: 'JetBrains Mono'; font-size: 10px;
+  padding: 6px 12px; cursor: pointer;
+}
+.toolbar button:hover { background: #444; }
+.toolbar button.primary { background: #c45a2c; border-color: #c45a2c; color: #fff; }
+
+/* Zone list */
+.zone-list { flex: 1; overflow-y: auto; }
+.zone-item {
+  padding: 8px 14px;
+  border-bottom: 1px solid #2a2a2e;
+  cursor: pointer; font-size: 12px;
+  display: flex; justify-content: space-between; align-items: center;
+}
+.zone-item:hover { background: #2a2a2e; }
+.zone-item.selected { background: #1a3040; color: #00f0ff; }
+.zone-item .zone-item-name { font-family: 'JetBrains Mono'; font-size: 11px; }
+.zone-item .zone-item-size { font-family: 'JetBrains Mono'; font-size: 9px; color: #666; }
+.zone-item.is-disabled { opacity: 0.4; }
+.zone-item.is-disabled .zone-item-name { text-decoration: line-through; }
+.zone-toggle {
+  background: #2a6a3a; border: none; color: #fff; font-family: 'JetBrains Mono'; font-size: 8px;
+  padding: 2px 6px; cursor: pointer; border-radius: 2px; letter-spacing: .05em;
+}
+.zone-toggle.off { background: #6a2a2a; }
+
+/* Properties */
+.props {
+  border-top: 1px solid #333;
+  padding: 12px 14px;
+}
+.props-title {
+  font-family: 'JetBrains Mono'; font-size: 9px; letter-spacing: .12em;
+  text-transform: uppercase; color: #888; margin-bottom: 8px;
+}
+.prop-row {
+  display: flex; align-items: center; gap: 8px; margin-bottom: 6px;
+}
+.prop-label {
+  font-family: 'JetBrains Mono'; font-size: 9px; color: #888;
+  min-width: 20px; text-transform: uppercase;
+}
+.prop-input {
+  background: #1a1a1e; border: 1px solid #444; color: #eaeaea;
+  font-family: 'JetBrains Mono'; font-size: 12px;
+  padding: 4px 6px; width: 60px;
+}
+.prop-input:focus { border-color: #00f0ff; outline: none; }
+
+.status-bar {
+  padding: 6px 14px;
+  border-top: 1px solid #333;
+  font-family: 'JetBrains Mono'; font-size: 9px; color: #666;
+}
+</style>
+</head>
+<body>
+<div class="editor">
+  <div class="canvas-area" id="canvas-area">
+    <div class="canvas-wrapper" id="canvas-wrapper">
+      <img id="screenshot" src="">
+      <div id="zones-overlay"></div>
+    </div>
+    <div style="position:absolute;bottom:10px;left:10px;color:#666;font-family:'JetBrains Mono';font-size:10px" id="capture-hint">
+      Click "Capture" to grab the game screen
+    </div>
+  </div>
+
+  <div class="sidebar">
+    <div class="sidebar-hd">Zone Editor</div>
+    <div class="toolbar">
+      <button id="btn-capture" class="primary">Capture</button>
+      <button id="btn-save">Save</button>
+      <button id="btn-reset">Reset</button>
+    </div>
+
+    <div class="sidebar-hd" style="display:flex;justify-content:space-between;align-items:center">
+      <span>Zones</span>
+      <div style="display:flex;gap:4px">
+        <button id="btn-add-zone" style="background:#333;border:1px solid #444;color:#0f0;font-size:14px;width:22px;height:22px;cursor:pointer;display:grid;place-items:center;padding:0" title="Add zone">+</button>
+        <button id="btn-delete-zone" style="background:#333;border:1px solid #444;color:#f44;font-size:14px;width:22px;height:22px;cursor:pointer;display:grid;place-items:center;padding:0" title="Delete zone">×</button>
+      </div>
+    </div>
+    <div class="zone-list" id="zone-list"></div>
+
+    <div class="props" id="props" style="display:none">
+      <div class="prop-row" style="margin-bottom:10px">
+        <span class="prop-label">Name</span>
+        <input type="text" class="prop-input" id="prop-name" style="width:140px;font-size:11px">
+        <button id="btn-rename" style="background:#333;border:1px solid #444;color:#ddd;font-family:'JetBrains Mono';font-size:9px;padding:4px 8px;cursor:pointer">Rename</button>
+      </div>
+      <div class="prop-row">
+        <span class="prop-label">X</span>
+        <input type="number" class="prop-input" id="prop-x">
+        <span class="prop-label">Y</span>
+        <input type="number" class="prop-input" id="prop-y">
+      </div>
+      <div class="prop-row">
+        <span class="prop-label">W</span>
+        <input type="number" class="prop-input" id="prop-w">
+        <span class="prop-label">H</span>
+        <input type="number" class="prop-input" id="prop-h">
+      </div>
+      <div style="font-family:'JetBrains Mono';font-size:8px;color:#666;margin-top:4px" id="prop-base">
+        Base 1080p: —
+      </div>
+    </div>
+
+    <div class="status-bar" id="status">Ready</div>
+  </div>
+</div>
+
+<script>
+const { ipcRenderer } = require('electron');
+
+let zones = {};       // name -> { x, y, w, h } at current scale
+let baseZones = {};   // name -> { x, y, w, h } at base 1080p
+let disabledZones = new Set();
+let selectedZone = null;
+let scale = 1;
+let imgWidth = 0;
+let imgHeight = 0;
+let baseWidth = 1920;
+let baseHeight = 1080;
+let dragging = null;  // { zone, startX, startY, startRect, handle }
+
+// Load zones from main process
+async function loadZones() {
+  const data = await ipcRenderer.invoke('get-zones');
+  baseZones = {};
+  const resKey = `${data.baseW}x${data.baseH}`;
+  baseWidth = data.baseW;
+  baseHeight = data.baseH;
+
+  for (const [name, regionData] of Object.entries(data.regions)) {
+    const rect = regionData[resKey] || regionData['1920x1080'];
+    if (rect) {
+      baseZones[name] = { x: rect.x, y: rect.y, w: rect.w, h: rect.h };
+    }
+  }
+  // Load disabled zones
+  disabledZones = new Set(data.disabledZones || []);
+  scaleZones();
+  renderZoneList();
+  renderZoneBoxes();
+}
+
+function scaleZones() {
+  zones = {};
+  for (const [name, base] of Object.entries(baseZones)) {
+    zones[name] = {
+      x: Math.round(base.x * scale),
+      y: Math.round(base.y * scale),
+      w: Math.round(base.w * scale),
+      h: Math.round(base.h * scale),
+    };
+  }
+}
+
+function toBase(rect) {
+  return {
+    x: Math.round(rect.x / scale),
+    y: Math.round(rect.y / scale),
+    w: Math.round(rect.w / scale),
+    h: Math.round(rect.h / scale),
+  };
+}
+
+// Capture screenshot
+document.getElementById('btn-capture').onclick = async () => {
+  document.getElementById('status').textContent = 'Capturing...';
+  const data = await ipcRenderer.invoke('capture-game-screen');
+  if (data) {
+    const img = document.getElementById('screenshot');
+    img.src = data.dataUrl;
+    img.onload = () => {
+      imgWidth = data.width;
+      imgHeight = data.height;
+      scale = img.clientWidth / baseWidth;
+      document.getElementById('capture-hint').style.display = 'none';
+      scaleZones();
+      renderZoneBoxes();
+      document.getElementById('status').textContent = `Captured ${imgWidth}x${imgHeight} (scale: ${scale.toFixed(2)}x)`;
+    };
+  }
+};
+
+// Save to config
+document.getElementById('btn-save').onclick = async () => {
+  await ipcRenderer.invoke('save-zones', baseZones, [...disabledZones]);
+  document.getElementById('status').textContent = 'Saved!';
+  setTimeout(() => { document.getElementById('status').textContent = 'Ready'; }, 2000);
+};
+
+// Reset
+document.getElementById('btn-reset').onclick = () => {
+  loadZones();
+  document.getElementById('status').textContent = 'Reset to saved';
+};
+
+// Add zone
+document.getElementById('btn-add-zone').onclick = () => {
+  let name = 'NewZone';
+  let i = 1;
+  while (baseZones[name]) { name = `NewZone${i++}`; }
+  baseZones[name] = { x: 100, y: 100, w: 200, h: 60 };
+  scaleZones();
+  selectZone(name);
+  renderZoneList();
+  renderZoneBoxes();
+  document.getElementById('status').textContent = `Added "${name}" — drag to position, then Save`;
+};
+
+// Delete zone
+document.getElementById('btn-delete-zone').onclick = async () => {
+  if (!selectedZone) return;
+  const name = selectedZone;
+  // Check if detectables reference this zone
+  const cfg = await ipcRenderer.invoke('get-config');
+  const linked = Object.entries(cfg.detectables || {}).filter(([, d]) => d.region === name).map(([n]) => n);
+  if (linked.length > 0) {
+    const ok = confirm(`"${name}" is used by: ${linked.join(', ')}\n\nDelete anyway? Detectables will lose their region.`);
+    if (!ok) return;
+  }
+  delete baseZones[name];
+  delete zones[name];
+  selectedZone = null;
+  renderZoneList();
+  renderZoneBoxes();
+  document.getElementById('props').style.display = 'none';
+  document.getElementById('status').textContent = `Deleted "${name}" — Save to apply`;
+};
+
+// Rename zone
+document.getElementById('btn-rename').onclick = async () => {
+  if (!selectedZone) return;
+  const newName = document.getElementById('prop-name').value.trim();
+  if (!newName || newName === selectedZone) return;
+  if (baseZones[newName]) {
+    document.getElementById('status').textContent = `"${newName}" already exists`;
+    return;
+  }
+  const oldName = selectedZone;
+  baseZones[newName] = baseZones[oldName];
+  delete baseZones[oldName];
+  zones[newName] = zones[oldName];
+  delete zones[oldName];
+  // Update detectables that reference this zone
+  await ipcRenderer.invoke('rename-zone', oldName, newName);
+  selectedZone = newName;
+  renderZoneList();
+  renderZoneBoxes();
+  showProps(newName);
+  document.getElementById('status').textContent = `Renamed "${oldName}" → "${newName}" — Save to apply`;
+};
+
+// Render zone list
+function renderZoneList() {
+  const list = document.getElementById('zone-list');
+  list.innerHTML = '';
+  for (const [name, rect] of Object.entries(baseZones)) {
+    const disabled = disabledZones.has(name);
+    const item = document.createElement('div');
+    item.className = `zone-item ${name === selectedZone ? 'selected' : ''} ${disabled ? 'is-disabled' : ''}`;
+    item.innerHTML = `
+      <span class="zone-item-name">${name}</span>
+      <span class="zone-item-size">${rect.w}×${rect.h}</span>
+      <button class="zone-toggle ${disabled ? 'off' : ''}" data-zone="${name}">${disabled ? 'OFF' : 'ON'}</button>
+    `;
+    item.querySelector('.zone-item-name').onclick = () => selectZone(name);
+    item.querySelector('.zone-toggle').onclick = (e) => {
+      e.stopPropagation();
+      if (disabledZones.has(name)) disabledZones.delete(name);
+      else disabledZones.add(name);
+      renderZoneList();
+      renderZoneBoxes();
+    };
+    list.appendChild(item);
+  }
+}
+
+function selectZone(name) {
+  selectedZone = name;
+  renderZoneList();
+  renderZoneBoxes();
+  showProps(name);
+}
+
+function showProps(name) {
+  const props = document.getElementById('props');
+  if (!name || !zones[name]) { props.style.display = 'none'; return; }
+  props.style.display = '';
+  document.getElementById('prop-name').value = name;
+  const z = zones[name];
+  const b = baseZones[name];
+  document.getElementById('prop-x').value = z.x;
+  document.getElementById('prop-y').value = z.y;
+  document.getElementById('prop-w').value = z.w;
+  document.getElementById('prop-h').value = z.h;
+  document.getElementById('prop-base').textContent = `Base 1080p: ${b.x},${b.y} ${b.w}×${b.h}`;
+}
+
+// Property inputs
+['prop-x', 'prop-y', 'prop-w', 'prop-h'].forEach(id => {
+  document.getElementById(id).onchange = () => {
+    if (!selectedZone) return;
+    zones[selectedZone] = {
+      x: parseInt(document.getElementById('prop-x').value),
+      y: parseInt(document.getElementById('prop-y').value),
+      w: parseInt(document.getElementById('prop-w').value),
+      h: parseInt(document.getElementById('prop-h').value),
+    };
+    baseZones[selectedZone] = toBase(zones[selectedZone]);
+    renderZoneBoxes();
+    showProps(selectedZone);
+    renderZoneList();
+  };
+});
+
+// Render zone boxes on canvas
+function renderZoneBoxes() {
+  const overlay = document.getElementById('zones-overlay');
+  overlay.innerHTML = '';
+
+  for (const [name, rect] of Object.entries(zones)) {
+    const box = document.createElement('div');
+    box.className = `zone-box ${name === selectedZone ? 'selected' : ''} ${disabledZones.has(name) ? 'disabled' : ''}`;
+    box.style.left = rect.x + 'px';
+    box.style.top = rect.y + 'px';
+    box.style.width = rect.w + 'px';
+    box.style.height = rect.h + 'px';
+
+    box.innerHTML = `
+      <span class="zone-name">${name}</span>
+      <div class="handle handle-tl" data-handle="tl"></div>
+      <div class="handle handle-tr" data-handle="tr"></div>
+      <div class="handle handle-bl" data-handle="bl"></div>
+      <div class="handle handle-br" data-handle="br"></div>
+      <div class="handle handle-t" data-handle="t"></div>
+      <div class="handle handle-b" data-handle="b"></div>
+      <div class="handle handle-l" data-handle="l"></div>
+      <div class="handle handle-r" data-handle="r"></div>
+    `;
+
+    // Click to select
+    box.addEventListener('mousedown', (e) => {
+      e.stopPropagation();
+      selectZone(name);
+      const handle = e.target.dataset?.handle;
+      dragging = {
+        zone: name,
+        startX: e.clientX,
+        startY: e.clientY,
+        startRect: { ...rect },
+        handle: handle || 'move',
+      };
+    });
+
+    overlay.appendChild(box);
+  }
+}
+
+// Mouse move/up for dragging
+document.addEventListener('mousemove', (e) => {
+  if (!dragging) return;
+  const dx = e.clientX - dragging.startX;
+  const dy = e.clientY - dragging.startY;
+  const s = dragging.startRect;
+  const z = zones[dragging.zone];
+
+  if (dragging.handle === 'move') {
+    z.x = s.x + dx;
+    z.y = s.y + dy;
+  } else if (dragging.handle === 'br') {
+    z.w = Math.max(10, s.w + dx);
+    z.h = Math.max(10, s.h + dy);
+  } else if (dragging.handle === 'bl') {
+    z.x = s.x + dx;
+    z.w = Math.max(10, s.w - dx);
+    z.h = Math.max(10, s.h + dy);
+  } else if (dragging.handle === 'tr') {
+    z.w = Math.max(10, s.w + dx);
+    z.y = s.y + dy;
+    z.h = Math.max(10, s.h - dy);
+  } else if (dragging.handle === 'tl') {
+    z.x = s.x + dx;
+    z.y = s.y + dy;
+    z.w = Math.max(10, s.w - dx);
+    z.h = Math.max(10, s.h - dy);
+  } else if (dragging.handle === 'r') {
+    z.w = Math.max(10, s.w + dx);
+  } else if (dragging.handle === 'l') {
+    z.x = s.x + dx;
+    z.w = Math.max(10, s.w - dx);
+  } else if (dragging.handle === 'b') {
+    z.h = Math.max(10, s.h + dy);
+  } else if (dragging.handle === 't') {
+    z.y = s.y + dy;
+    z.h = Math.max(10, s.h - dy);
+  }
+
+  baseZones[dragging.zone] = toBase(z);
+  renderZoneBoxes();
+  showProps(dragging.zone);
+});
+
+document.addEventListener('mouseup', () => {
+  if (dragging) {
+    renderZoneList();
+    dragging = null;
+  }
+});
+
+// Deselect on canvas click
+document.getElementById('canvas-area').addEventListener('mousedown', (e) => {
+  if (e.target === e.currentTarget || e.target.tagName === 'IMG') {
+    selectedZone = null;
+    renderZoneList();
+    renderZoneBoxes();
+    document.getElementById('props').style.display = 'none';
+  }
+});
+
+loadZones();
+</script>
+</body>
+</html>

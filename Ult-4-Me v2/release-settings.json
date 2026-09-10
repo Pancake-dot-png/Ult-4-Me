@@ -1,0 +1,503 @@
+{
+  "monitor_number": 1,
+  "aspect_ratio_index": 0,
+  "show_overlay_mode": 1,
+  "show_regions_mode": 1,
+  "ignore_spectate": true,
+  "ignore_redundant_assists": true,
+  "decay": 180,
+  "lovense_ip": "",
+  "panic_key": "",
+  "disabled_zones": [],
+  "multi_actuator": {
+    "Nora": {
+      "enabled": true,
+      "threshold": 26,
+      "max_level": 20,
+      "intensity": 50
+    },
+    "Max": {
+      "enabled": true,
+      "threshold": 26,
+      "max_level": 20,
+      "intensity": 50
+    },
+    "Edge": {
+      "enabled": true,
+      "threshold": 26,
+      "max_level": 20,
+      "intensity": 50
+    },
+    "Gravity": {
+      "enabled": true,
+      "threshold": 20,
+      "max_level": 20,
+      "intensity": 50
+    },
+    "Dolce": {
+      "enabled": true,
+      "threshold": 26,
+      "max_level": 20,
+      "intensity": 50
+    },
+    "Gemini": {
+      "enabled": true,
+      "threshold": 26,
+      "max_level": 20,
+      "intensity": 50
+    },
+    "Vulse": {
+      "enabled": true,
+      "threshold": 26,
+      "max_level": 20,
+      "intensity": 50
+    }
+  },
+  "onboarding_completed": false,
+  "panic_url": "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
+  "detectables": {
+    "KillcamOrPOTG": {
+      "filename": "play_of_the_game.png",
+      "threshold": 0.7,
+      "region": "POTG"
+    },
+    "KillCam": {
+      "filename": "respawning.png",
+      "threshold": 0.87,
+      "region": "Kill Cam"
+    },
+    "Elimination": {
+      "filename": "elimination.png",
+      "threshold": 0.8,
+      "region": "Popup",
+      "points": 35,
+      "type": 2,
+      "duration": 2.5
+    },
+    "Assist": {
+      "filename": "assist.png",
+      "threshold": 0.8,
+      "region": "Popup",
+      "points": 25,
+      "type": 2,
+      "duration": 2.5
+    },
+    "Saved": {
+      "filename": "saved.png",
+      "threshold": 0.8,
+      "region": "Popup",
+      "points": 35,
+      "type": 2,
+      "duration": 2.5
+    },
+    "Died": {
+      "filename": "died.png",
+      "threshold": 0.86,
+      "region": "Popup",
+      "points": 0,
+      "type": 3,
+      "duration": 7
+    },
+    "Detected": {
+      "filename": "prompt_detected.png",
+      "threshold": 0.5,
+      "region": "Prompt",
+      "filter": "prompt",
+      "points": 100,
+      "type": 0
+    },
+    "Life Gripped": {
+      "filename": "prompt_gripped.png",
+      "threshold": 0.3,
+      "region": "Prompt",
+      "filter": "prompt",
+      "points": 100,
+      "type": 0
+    },
+    "Hacked": {
+      "filename": "prompt_hacked.png",
+      "threshold": 0.5,
+      "region": "Prompt",
+      "filter": "prompt",
+      "points": -50,
+      "type": 0
+    },
+    "Hindered": {
+      "filename": "prompt_hindered.png",
+      "threshold": 0.5,
+      "region": "Prompt",
+      "filter": "prompt",
+      "points": -30,
+      "type": 0
+    },
+    "Reviving": {
+      "filename": "prompt_reviving.png",
+      "threshold": 0.5,
+      "region": "Prompt",
+      "filter": "prompt",
+      "points": 100,
+      "type": 0
+    },
+    "Pinned": {
+      "filename": "prompt_pinned.png",
+      "threshold": 0.5,
+      "region": "Prompt",
+      "filter": "prompt",
+      "points": 100,
+      "type": 0
+    },
+    "Revealed": {
+      "filename": "prompt_revealed.png",
+      "threshold": 0.5,
+      "region": "Prompt",
+      "filter": "prompt",
+      "points": 30,
+      "type": 0
+    },
+    "Sleep": {
+      "filename": "prompt_sleep.png",
+      "threshold": 0.5,
+      "region": "Prompt",
+      "filter": "prompt",
+      "points": -100,
+      "type": 0
+    },
+    "Stuck": {
+      "filename": "prompt_stuck.png",
+      "threshold": 0.5,
+      "region": "Prompt",
+      "filter": "prompt",
+      "points": 100,
+      "type": 0
+    },
+    "Stunned": {
+      "filename": "prompt_stunned.png",
+      "threshold": 0.44,
+      "region": "Prompt",
+      "filter": "prompt",
+      "points": 30,
+      "type": 0
+    },
+    "Trapped": {
+      "filename": "prompt_trapped.png",
+      "threshold": 0.5,
+      "region": "Prompt",
+      "filter": "prompt",
+      "points": -50,
+      "type": 0
+    },
+    "Grappled": {
+      "filename": "prompt_grappled.png",
+      "threshold": 0.8,
+      "region": "Prompt",
+      "filter": "prompt",
+      "points": 25,
+      "type": 4,
+      "duration": 2
+    },
+    "Receive Zen Heal": {
+      "filename": "receive_zen_heal.png",
+      "threshold": 0.8,
+      "region": "Receive Heal",
+      "points": 10,
+      "type": 0
+    },
+    "Receive Mercy Heal": {
+      "filename": "receive_mercy_heal.png",
+      "threshold": 0.65,
+      "region": "Receive Heal",
+      "points": 15,
+      "type": 0,
+      "v2_threshold": 0.65
+    },
+    "Receive Mercy Boost": {
+      "filename": "receive_mercy_boost.png",
+      "threshold": 0.67,
+      "region": "Receive Heal",
+      "points": 25,
+      "type": 0,
+      "v2_threshold": 0.65
+    },
+    "Receive Hack": {
+      "filename": "receive_hack_icon.png",
+      "threshold": 0.8,
+      "region": "Receive Status Effect",
+      "points": 100,
+      "type": 0
+    },
+    "Receive Discord Orb": {
+      "filename": "receive_discord_2.png",
+      "threshold": 0.8,
+      "region": "Receive Status Effect",
+      "points": -30,
+      "type": 1,
+      "filter": null
+    },
+    "Receive Anti-Heal": {
+      "filename": "receive_purple_pot.png",
+      "threshold": 0.8,
+      "region": "Receive Status Effect",
+      "points": -55,
+      "type": 0
+    },
+    "Receive Heal Boost": {
+      "filename": "receive_yellow_pot.png",
+      "threshold": 0.8,
+      "region": "Receive Status Effect",
+      "points": 20,
+      "type": 0
+    },
+    "Receive Immortality": {
+      "filename": "receive_immortality.png",
+      "threshold": 0.8,
+      "region": "Receive Status Effect",
+      "points": 50,
+      "type": 0
+    },
+    "Give Mercy Heal": {
+      "filename": "apply_mercy_heal.png",
+      "threshold": 0.8,
+      "region": "Give Mercy Heal",
+      "points": 15,
+      "type": 0
+    },
+    "Give Mercy Boost": {
+      "filename": "apply_mercy_boost.png",
+      "threshold": 0.85,
+      "region": "Give Mercy Boost",
+      "points": 25,
+      "type": 0
+    },
+    "Give Harmony Orb": {
+      "filename": "apply_harmony.png",
+      "threshold": 0.75,
+      "region": "Give Harmony Orb",
+      "points": 10,
+      "type": 0
+    },
+    "Give Discord Orb": {
+      "filename": "apply_discord.png",
+      "threshold": 0.75,
+      "region": "Give Discord Orb",
+      "points": 20,
+      "type": 0
+    },
+    "Earth Shatter": {
+      "filename": "earthshatter.png",
+      "threshold": 0.75,
+      "region": "Popup",
+      "points": 50,
+      "type": 0
+    },
+    "Sleep Dart": {
+      "filename": "sleep_dart.png",
+      "threshold": 0.7,
+      "region": "Popup",
+      "points": 60,
+      "type": 0
+    },
+    "Throwing Big Rock": {
+      "filename": "throw_big_rock.png",
+      "threshold": 0.8,
+      "region": "Popup",
+      "points": 20,
+      "type": 2,
+      "duration": 2
+    },
+    "Deployed Pylon": {
+      "filename": "deployed_pylon.png",
+      "threshold": 0.7,
+      "region": "Constructs",
+      "points": 10,
+      "type": 0
+    },
+    "Deployed Tree": {
+      "filename": "deployed_tree.png",
+      "threshold": 0.7,
+      "region": "Constructs",
+      "points": 50,
+      "type": 0
+    },
+    "Receive Wuyang Heal": {
+      "filename": "receive_wuyang_healing.png",
+      "threshold": 0.85,
+      "region": "Receive Heal",
+      "points": 10,
+      "type": 0
+    },
+    "Receive Wuyang Initial": {
+      "filename": "receive_wuyang_initial_healing.png",
+      "threshold": 0.8,
+      "region": "Popup",
+      "points": 20,
+      "type": 0
+    },
+    "Anti-Healing": {
+      "filename": "anti-healing.png",
+      "threshold": 0.6,
+      "region": "Anti Healing",
+      "points": -50,
+      "type": 0
+    },
+    "Overtime": {
+      "filename": "overtime.png",
+      "threshold": 0.6,
+      "region": "Overtime",
+      "points": 30,
+      "type": 0
+    },
+    "Capture Progress": {
+      "filename": "capture_progress.png",
+      "threshold": 0.8,
+      "region": "Capture Progress",
+      "points": 75,
+      "type": 4,
+      "duration": 2
+    },
+    "Burning": {
+      "filename": "burning.png",
+      "region": "Receive Status Effect",
+      "points": 50,
+      "type": 0,
+      "match_mode": "auto",
+      "threshold": 0.8,
+      "v2_threshold": 0.9
+    }
+  },
+  "user_regions": {
+    "Popup1": {
+      "1920x1080": {
+        "x": 732,
+        "y": 754,
+        "w": 244,
+        "h": 45
+      }
+    },
+    "Popup2": {
+      "1920x1080": {
+        "x": 731,
+        "y": 806,
+        "w": 245,
+        "h": 30
+      }
+    },
+    "Popup3": {
+      "1920x1080": {
+        "x": 731,
+        "y": 839,
+        "w": 247,
+        "h": 30
+      }
+    },
+    "Give Harmony Orb": {
+      "1920x1080": {
+        "x": 725,
+        "y": 945,
+        "w": 50,
+        "h": 50
+      }
+    },
+    "Give Discord Orb": {
+      "1920x1080": {
+        "x": 1145,
+        "y": 945,
+        "w": 50,
+        "h": 50
+      }
+    },
+    "Give Mercy Heal": {
+      "1920x1080": {
+        "x": 790,
+        "y": 655,
+        "w": 68,
+        "h": 68
+      }
+    },
+    "Give Mercy Boost": {
+      "1920x1080": {
+        "x": 1062,
+        "y": 655,
+        "w": 68,
+        "h": 68
+      }
+    },
+    "Receive Heal": {
+      "1920x1080": {
+        "x": 440,
+        "y": 740,
+        "w": 210,
+        "h": 100
+      }
+    },
+    "Receive Status Effect": {
+      "1920x1080": {
+        "x": 160,
+        "y": 840,
+        "w": 140,
+        "h": 55
+      }
+    },
+    "Prompt": {
+      "1920x1080": {
+        "x": 810,
+        "y": 228,
+        "w": 300,
+        "h": 58
+      }
+    },
+    "Overtime": {
+      "1920x1080": {
+        "x": 900,
+        "y": 35,
+        "w": 123,
+        "h": 39
+      }
+    },
+    "Capture Progress": {
+      "1920x1080": {
+        "x": 745,
+        "y": 326,
+        "w": 428,
+        "h": 79
+      }
+    },
+    "Constructs": {
+      "1920x1080": {
+        "x": 445,
+        "y": 910,
+        "w": 174,
+        "h": 74
+      }
+    },
+    "POTG": {
+      "2560x1080": {
+        "x": 210,
+        "y": 28,
+        "w": 94,
+        "h": 50
+      }
+    },
+    "Kill Cam": {
+      "1920x1080": {
+        "x": 1628,
+        "y": 40,
+        "w": 158,
+        "h": 47
+      },
+      "2560x1080": {
+        "x": 2268,
+        "y": 40,
+        "w": 158,
+        "h": 47
+      }
+    },
+    "Anti Healing": {
+      "1920x1080": {
+        "x": 164,
+        "y": 896,
+        "w": 51,
+        "h": 30
+      }
+    }
+  }
+}
