@@ -2,6 +2,7 @@ const { app, BrowserWindow, ipcMain, screen, dialog, globalShortcut, nativeImage
 const path = require('path');
 const fs = require('fs');
 const { Config } = require('./src/config');
+const { installPanicAudio } = require('./src/panic-audio');
 const { LovenseClient, ButtplugServer, getLocalIP } = require('./src/bridge');
 const { spawn, execFile } = require('child_process');
 const { promisify } = require('util');
@@ -99,6 +100,7 @@ function createWindow() {
     },
   });
 
+  installPanicAudio(win.webContents, () => muted);
   win.loadFile(path.join(__dirname, 'app.html'));
 
   win.on('move', () => saveWindowBounds());
@@ -219,7 +221,15 @@ ipcMain.handle('delete-detectable', (_, name) => {
 
 ipcMain.handle('set-detectable', (_, name, field, value) => {
   if (config.detectables[name]) {
-    if (field === 'duration') value = Math.max(0.1, value);
+    if (field === 'full_coverage') {
+      if (!Number.isFinite(value)) return;
+      value = Math.max(.01, Math.min(1, value));
+    }
+    if (field === 'duration' || field === 'cooldown') {
+      value = Number(value);
+      if (!Number.isFinite(value)) return;
+      value = Math.max(field === 'duration' ? 0.1 : 0, value);
+    }
     config.detectables[name][field] = value;
     config.save();
   }
@@ -404,6 +414,7 @@ function handleVisionMessage(msg) {
     }
     if (win && !win.isDestroyed()) {
       win.webContents.send('score', score, ping);
+      win.webContents.send('menu-pause', !!msg.menuPaused, msg.menuResumeSeconds || 0);
     }
     updateOverlay(score, ping, detections, msg.owFocused !== false, msg.matchedRegions || []);
 
@@ -427,6 +438,13 @@ function handleVisionMessage(msg) {
 
     // Drive Lovense
     if (!lovense?.connected) return;
+    if (msg.menuPaused) {
+      // Bypass score normalization, minimum levels and per-toy mute routing.
+      lovense.stopAll();
+      lastLevel = 0;
+      lastSendTime = Date.now();
+      return;
+    }
     if (muted) return;
     const minScore = config.get('min_score') || 0;
     const maxScore = config.get('max_score') || 100;
@@ -477,6 +495,7 @@ ipcMain.handle('get-zones', () => {
     userRegions = cfg.user_regions || {};
   } catch {}
   const merged = { ...REGIONS, ...userRegions };
+  delete merged['Capture Progress']; // Retired after the in-game UI changed.
   let disabledZones = [];
   try {
     const cfg2 = JSON.parse(fs.readFileSync(configPath, 'utf-8'));
@@ -715,6 +734,9 @@ function toggleMute() {
   // Only allow panic when vision is running
   if (!muted && !visionProcess) return;
   muted = !muted;
+  if (muted && visionProcess?.stdin?.writable) {
+    visionProcess.stdin.write('reset\n');
+  }
   if (muted && lovense) {
     lovense.stopAll();
     lastLevel = -1;

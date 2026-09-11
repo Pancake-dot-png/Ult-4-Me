@@ -86,6 +86,8 @@ class FixBundleTests(unittest.TestCase):
             v = Vision(cfg, base/'templates', capture=screen)
             self.assertFalse(v.template_errors)
             for name, det in cfg.detectables.items():
+                if det.get('type') in (6, 7, 8) or (det.get('type') == 5 and det.get('points') == 0):
+                    continue  # Dedicated watcher tests exercise color and menu detection.
                 with self.subTest(height=height, event=name):
                     if name == 'KillcamOrPOTG' and det.get('region') == 'Anti Healing':
                         self.skipTest('POTG assignment retained at user request')

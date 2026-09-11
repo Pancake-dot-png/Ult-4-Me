@@ -17,6 +17,9 @@ import cv2 as cv
 
 from config import Config, REGIONS, ASPECT_RATIOS
 from detector import load_examples, match_examples, Presence
+from timed_bonus import TimedBonus
+from color_watch import ColorWatch
+from menu_pause import MenuPause
 
 
 class Vision:
@@ -39,6 +42,11 @@ class Vision:
 
         # Type 4 (hold) — tracks active holds: name -> { points, expires }
         self._holds = {}
+        self._timed_bonuses = {}
+        self._menu_gate = MenuPause()
+        self._menu_next_scan = 0
+        self._hud_present = {}
+        self._hud_presence = Presence()
 
         # Zone activity tracking — last match time per region
         self._zone_last_match = {}  # region_name -> timestamp
@@ -48,7 +56,7 @@ class Vision:
         self._suppression_until = 0
 
         # Low-priority zones — checked every 3rd frame if idle
-        self._low_priority_zones = {"Constructs", "Overtime", "Capture Progress", "POTG", "Kill Cam"}
+        self._low_priority_zones = {"Constructs", "Overtime", "POTG", "Kill Cam"}
 
         # Debug: stores confidence values per detectable
         self.debug_confidence = {}
@@ -99,6 +107,9 @@ class Vision:
             ds["count"] = 0
 
         self._update_detections()
+        if self.menu_paused:
+            self.detection_ping = .9 * self.detection_ping + .1 * (time.time() - t0)
+            return True
 
         # Reduce assists by eliminations to avoid double-counting
         if self.config.get("ignore_redundant_assists"):
@@ -112,6 +123,9 @@ class Vision:
         set_score_value = 0
         set_score_duration = 0
         frame_delta_points = 0
+        bonus_now = time.monotonic()
+        self._timed_bonuses = {n: b for n, b in self._timed_bonuses.items()
+                              if self.config.detectables.get(n, {}).get("type") == 5}
         for name, det in self.config.detectables.items():
             if name == "KillcamOrPOTG":
                 continue
@@ -130,6 +144,22 @@ class Vision:
             elif det_type == 4:
                 if count > 0:
                     self._holds[name] = {"points": points, "expires": time.time() + det.get("duration", 2)}
+            elif det_type == 5:
+                bonus = self._timed_bonuses.setdefault(name, TimedBonus())
+                observed = self.match_details.get(name)
+                present = None
+                if observed is not None:
+                    if observed["active"]:
+                        present = True
+                    elif not observed.get("matched", False):
+                        present = False
+                value = bonus.update(present, bonus_now, points,
+                                     float(det.get("duration", 8)), float(det.get("cooldown", 20)))
+                if t0 >= self._suppression_until:
+                    self.score_instant += value
+            elif det_type == 6:
+                if count > 0:
+                    self.score_instant += points * self.match_details.get(name, {}).get("strength", 0)
             elif det_type == 0:
                 self.score_instant += count * points
             elif det_type == 1:
@@ -169,7 +199,88 @@ class Vision:
     def get_score(self):
         return self.score_over_time + self.score_instant
 
+    @property
+    def menu_paused(self):
+        return self._menu_gate.paused
+
+    def _clear_gameplay_state(self):
+        self.score_over_time = self.score_instant = 0
+        self._set_score_until = self._set_score_value = 0
+        self._holds.clear()
+        self._timed_bonuses.clear()
+        self._zone_last_match.clear()
+        self._suppression_until = 0
+        self._presence.state.clear()
+        self._hud_presence.state.clear()
+        self._hud_present.clear()
+        for ds in self._det_state.values():
+            if "color_watch" in ds:
+                ds["color_watch"] = ColorWatch()
+
+    def _check_menu(self, now):
+        if now < self._menu_next_scan:
+            return
+        self._menu_next_scan = now + 1
+        observations = []
+        matched_delays = []
+        for name, det in self.config.detectables.items():
+            if det.get("type") != 7:
+                continue
+            ds = self._det_state.get(name)
+            rs = self._region_state.get(det.get("region"))
+            crop = self._crop_frame(rs["scaled"]) if rs else None
+            if ds is None or crop is None or crop.size == 0:
+                observations.append(None)
+                continue
+            result = match_examples(crop, ds["examples"], self._get_filter(det.get("filter")))
+            threshold = float(det.get("threshold", .9))
+            present = result.confidence >= threshold
+            observations.append(present)
+            self.debug_confidence[name] = round(result.confidence, 4)
+            self.match_details[name] = {"mode": result.mode, "threshold": threshold,
+                "active": present, "example": result.filename, "location": result.location, "size": result.size}
+            if present:
+                delay = det.get("menu_resume_delays", {}).get(result.filename, 5)
+                matched_delays.append(0 if delay == 0 else 5)
+                ds["count"] = 1
+                rs["matches"].append(name)
+        if observations:
+            present = True if True in observations else None if None in observations else False
+            self._menu_gate.update(present, now, max(matched_delays, default=5))
+
+    def _check_hud(self):
+        self._hud_present.clear()
+        for name, det in self.config.detectables.items():
+            if det.get("type") != 8:
+                continue
+            rs = self._region_state.get(det.get("region"))
+            ds = self._det_state.get(name)
+            crop = self._crop_frame(rs["scaled"]) if rs else None
+            if crop is None or ds is None:
+                self._hud_presence.state.pop(name, None)
+                continue
+            result = match_examples(crop, ds["examples"], self._get_filter(det.get("filter")))
+            confidence = result.confidence
+            seen = confidence >= float(det.get("threshold", .9))
+            # The existing anti-heal image is an alternate HUD state. Sensing it
+            # here never consumes zone capacity or awards detection points.
+            alternate = det.get("hud_alternate")
+            alt = self.config.detectables.get(alternate, {})
+            alt_state = self._det_state.get(alternate)
+            if alt_state and alt.get("region") == det.get("region"):
+                result = match_examples(crop, alt_state["examples"], self._get_filter(alt.get("filter")))
+                threshold = float(alt.get("threshold", .8)) if result.mode == "legacy" else float(alt.get("v2_threshold", .9))
+                seen = seen or result.confidence >= threshold
+                confidence = max(confidence, result.confidence)
+            ready = self._hud_presence.update(name, float(seen), .5, time.monotonic(), 2, 0)
+            self._hud_present[name] = ready
+            self.debug_confidence[name] = round(confidence, 4)
+            self.match_details[name] = {"mode": "passive", "active": False,
+                "hud_present": ready, "threshold": det.get("threshold", .9)}
+
+
     def set_score(self, value):
+        self._clear_gameplay_state()
         self.score_over_time = value
 
     def get_detection_rect(self):
@@ -253,9 +364,14 @@ class Vision:
             }
 
         self._presence = Presence()
+        self._hud_presence = Presence()
+        self._hud_present.clear()
         self._det_state.clear()
         self.template_errors.clear()
         for name, det in self.config.detectables.items():
+            if det.get("type") == 6:
+                self._det_state[name] = {"color_watch": ColorWatch(), "count": 0}
+                continue
             if not det.get("filename"):
                 continue
             try:
@@ -286,9 +402,18 @@ class Vision:
         return True
 
     def _update_detections(self):
-        active_regions = list(self._region_state)
+        was_paused = self.menu_paused
+        active_regions = ([d.get("region") for d in self.config.detectables.values() if d.get("type") == 7]
+                          if was_paused else list(self._region_state))
         check_suppression = True
         self._grab_frame(active_regions)
+        self._check_menu(time.monotonic())
+        self.min_update_period = 1.0 if self.menu_paused else .1
+        if self.menu_paused:
+            self._clear_gameplay_state()
+            return
+        if was_paused:
+            self._grab_frame(list(self._region_state))
 
         # POTG/Killcam suppression
         potg_region = self.config.detectables.get("KillcamOrPOTG", {}).get("region") or "KillcamOrPOTG"
@@ -321,6 +446,8 @@ class Vision:
                     self._match_region("Popup1", type3_dets)
                 return
 
+        self._check_hud()
+
         # CC prompts
         prompt_dets = [n for n, d in self.config.detectables.items() if d.get("region") == "Prompt"]
         self._match_region("Prompt", prompt_dets)
@@ -342,11 +469,14 @@ class Vision:
             if p2_active or p2_recent:
                 self._match_region("Popup3", popup_dets)
 
-        # Hero-specific (region name matches detectable name)
+        # Compare all heroes sharing a give zone before allocating its capacity.
+        give_zones = {}
         for name, det in self.config.detectables.items():
             region = det.get("region") or ""
             if region.startswith("Give "):
-                self._match_region(region, [name])
+                give_zones.setdefault(region, []).append(name)
+        for region, names in give_zones.items():
+            self._match_region(region, names)
 
         # Received heals
         heal_dets = [n for n, d in self.config.detectables.items() if d.get("region") == "Receive Heal"]
@@ -357,11 +487,12 @@ class Vision:
         self._match_region("Receive Status Effect", status_dets)
 
         # Custom zones — anything not handled above
-        handled_regions = {"KillcamOrPOTG", "POTG", "Kill Cam", "Prompt", "Popup", "Give Mercy Heal", "Give Mercy Boost",
+        handled_regions = {"KillcamOrPOTG", "POTG", "Kill Cam", "Prompt", "Popup", "Give Healing", "Give Boost",
                           "Give Harmony Orb", "Give Discord Orb", "Receive Heal", "Receive Status Effect"}
+        handled_regions.update(give_zones)
         for name, det in self.config.detectables.items():
             region = det.get("region") or ""
-            if region and region not in handled_regions and region in self._region_state:
+            if det.get("type") not in (7, 8) and region and region not in handled_regions and region in self._region_state:
                 self._match_region(region, [name])
 
     # ── Frame capture ────────────────────────────────────────────────────
@@ -425,6 +556,20 @@ class Vision:
             if det.get("points", 0) == 0 and det.get("type") not in (3, 4) and name not in ("KillcamOrPOTG", "KillCam"):
                 continue
             ds = self._det_state[name]
+            if det.get("type") == 6:
+                guard = det.get("hud_guard")
+                hud_ready = not guard or self._hud_present.get(guard, False)
+                coverage, strength = ds["color_watch"].update(
+                    crop if hud_ready else None, float(det.get("full_coverage", .67)), time.monotonic())
+                active = strength > 0
+                self.debug_confidence[name] = round(strength, 4)
+                self.match_details[name] = {"mode": "color", "active": active,
+                    "coverage": coverage, "strength": strength,
+                    "hud_present": hud_ready,
+                    "full_coverage": det.get("full_coverage"), "threshold": 0}
+                if active:
+                    candidates.append((True, strength, name))
+                continue
             selected = crop
             if det.get("region") == "Prompt":
                 width = max(ex.image.shape[1] for ex in ds["examples"])
@@ -438,6 +583,7 @@ class Vision:
             active = self._presence.update((region_name, name), result.confidence, threshold,
                     time.monotonic(), int(det.get("confirm_frames", 2)), float(det.get("release_ms", 200)))
             self.match_details[name] = {"mode": mode, "threshold": threshold, "active": active,
+                    "matched": result.confidence >= threshold,
                     "example": result.filename, "location": result.location, "size": result.size}
             if active:
                 candidates.append((result.confidence >= threshold, result.confidence, name))

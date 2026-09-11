@@ -31,6 +31,7 @@ def main():
     output = args.output or ROOT/'dist'/f'ULT-4-ME-V2-{version}.zip'
     config = json.loads((ROOT/'release-settings.json').read_text(encoding='utf-8'))
     assert config['lovense_ip'] == '' and config['onboarding_completed'] is False
+    assert config['show_regions_mode'] == 0, 'Public downloads must start with debug regions off'
     filenames = {d['filename'] for d in config['detectables'].values() if d.get('filename')}
     for det in config['detectables'].values(): filenames.update(det.get('examples', []))
     assert all(Path(name).name == name and '\\' not in name for name in filenames)

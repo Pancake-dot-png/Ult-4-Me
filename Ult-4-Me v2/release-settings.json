@@ -257,14 +257,14 @@
     "Give Mercy Heal": {
       "filename": "apply_mercy_heal.png",
       "threshold": 0.8,
-      "region": "Give Mercy Heal",
+      "region": "Give Healing",
       "points": 15,
       "type": 0
     },
     "Give Mercy Boost": {
       "filename": "apply_mercy_boost.png",
       "threshold": 0.85,
-      "region": "Give Mercy Boost",
+      "region": "Give Boost",
       "points": 25,
       "type": 0
     },
@@ -346,14 +346,6 @@
       "points": 30,
       "type": 0
     },
-    "Capture Progress": {
-      "filename": "capture_progress.png",
-      "threshold": 0.8,
-      "region": "Capture Progress",
-      "points": 75,
-      "type": 4,
-      "duration": 2
-    },
     "Burning": {
       "filename": "burning.png",
       "region": "Receive Status Effect",
@@ -362,6 +354,75 @@
       "match_mode": "auto",
       "threshold": 0.8,
       "v2_threshold": 0.9
+    },
+    "Ultimate": {
+      "filename": "ultimate_zero.png",
+      "template_height": 1440,
+      "threshold": 0.95,
+      "region": "Ultimate",
+      "points": 0,
+      "type": 5,
+      "duration": 8,
+      "cooldown": 20,
+      "confirm_frames": 2,
+      "release_ms": 200
+    },
+    "Give Lucio Heal": {
+      "filename": "lucio_heal.png",
+      "template_height": 1440,
+      "threshold": 0.9,
+      "region": "Give Healing",
+      "points": 10,
+      "type": 0
+    },
+    "Give Lucio Boost": {
+      "filename": "lucio_boost.png",
+      "template_height": 1440,
+      "threshold": 0.9,
+      "region": "Give Boost",
+      "points": 10,
+      "type": 0
+    },
+    "Overshield": {
+      "filename": "overshield_reference.png",
+      "region": "Health Watch",
+      "points": 100,
+      "type": 6,
+      "full_coverage": 0.6954947707160096,
+      "hud_guard": "HUD Present"
+    },
+    "Menu Watcher": {
+      "filename": "menu_home.png",
+      "examples": [
+        "menu_back.png",
+        "menu_home_gray.png",
+        "menu_back_arrow.png"
+      ],
+      "template_height": 1440,
+      "match_mode": "legacy",
+      "threshold": 0.9,
+      "region": "Menu Watcher",
+      "points": 0,
+      "type": 7,
+      "menu_resume_delays": {
+        "menu_back.png": 0
+      }
+    },
+    "HUD Present": {
+      "filename": "hud_health_reference.png",
+      "template_crop": [
+        17,
+        10,
+        33,
+        29
+      ],
+      "template_height": 1440,
+      "region": "Anti Healing",
+      "threshold": 0.9,
+      "match_mode": "legacy",
+      "points": 0,
+      "type": 8,
+      "hud_alternate": "Anti-Healing"
     }
   },
   "user_regions": {
@@ -405,22 +466,6 @@
         "h": 50
       }
     },
-    "Give Mercy Heal": {
-      "1920x1080": {
-        "x": 790,
-        "y": 655,
-        "w": 68,
-        "h": 68
-      }
-    },
-    "Give Mercy Boost": {
-      "1920x1080": {
-        "x": 1062,
-        "y": 655,
-        "w": 68,
-        "h": 68
-      }
-    },
     "Receive Heal": {
       "1920x1080": {
         "x": 440,
@@ -451,14 +496,6 @@
         "y": 35,
         "w": 123,
         "h": 39
-      }
-    },
-    "Capture Progress": {
-      "1920x1080": {
-        "x": 745,
-        "y": 326,
-        "w": 428,
-        "h": 79
       }
     },
     "Constructs": {
@@ -497,6 +534,46 @@
         "y": 896,
         "w": 51,
         "h": 30
+      }
+    },
+    "Ultimate": {
+      "1920x1080": {
+        "x": 936,
+        "y": 905,
+        "w": 50,
+        "h": 49
+      }
+    },
+    "Give Healing": {
+      "1920x1080": {
+        "x": 790,
+        "y": 655,
+        "w": 68,
+        "h": 68
+      }
+    },
+    "Give Boost": {
+      "1920x1080": {
+        "x": 1062,
+        "y": 655,
+        "w": 68,
+        "h": 68
+      }
+    },
+    "Health Watch": {
+      "1920x1080": {
+        "x": 166,
+        "y": 931,
+        "w": 256,
+        "h": 18
+      }
+    },
+    "Menu Watcher": {
+      "1920x1080": {
+        "x": 17,
+        "y": 27,
+        "w": 96,
+        "h": 38
       }
     }
   }

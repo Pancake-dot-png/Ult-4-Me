@@ -29,14 +29,21 @@ for (const mode of [0, 1, 2]) {
   }
 }
 const {Config} = require('../app/src/config');
-const cfg = new Config(path.join(__dirname, '../../releases/v1.3-settings.json'));
+const os = require('os');
+const legacyFolder = fs.mkdtempSync(path.join(os.tmpdir(), 'ult-legacy-test-'));
+const legacyPath = path.join(legacyFolder, 'config.json');
+fs.copyFileSync(path.join(__dirname, '../../releases/v1.3-settings.json'), legacyPath);
+try {
+const cfg = new Config(legacyPath);
 cfg.load();
 for (const name of ['Receive Mercy Heal', 'Receive Mercy Boost', 'Receive Immortality']) {
   assert.equal(cfg.detectables[name].filter, undefined, 'UI must not re-save the accidental edge filter');
   assert.equal(cfg.detectables[name].threshold, .8);
 }
+} finally {
+  fs.rmSync(legacyFolder, {recursive: true, force: true});
+}
 console.log('Detection and output routing passed with overlays hidden and debug panel closed.');
-const os = require('os');
 const folder = fs.mkdtempSync(path.join(os.tmpdir(), 'ult-filter-test-'));
 const configPath = path.join(folder, 'config.json');
 const original = JSON.stringify({detectables: {

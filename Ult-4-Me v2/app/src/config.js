@@ -13,6 +13,9 @@ const ASPECT_RATIOS = {
 };
 
 const REGIONS = {
+  "Menu Watcher": {"1920x1080": {"x": 17, "y": 27, "w": 96, "h": 38}},
+  "Health Watch": {"1920x1080": {"x": 166, "y": 931, "w": 256, "h": 18}},
+  Ultimate: { '1920x1080': { x: 936, y: 905, w: 50, h: 49 } },
   Popup1: {
     '1920x1080': { x: 750, y: 750, w: 210, h: 30 },
     '2560x1080': { x: 1070, y: 750, w: 210, h: 30 },
@@ -38,12 +41,12 @@ const REGIONS = {
     '2560x1080': { x: 1465, y: 945, w: 50, h: 50 },
     '1680x1050': { x: 1000, y: 932, w: 45, h: 45 },
   },
-  'Give Mercy Heal': {
+  'Give Healing': {
     '1920x1080': { x: 790, y: 655, w: 68, h: 68 },
     '2560x1080': { x: 1110, y: 655, w: 68, h: 68 },
     '1680x1050': { x: 690, y: 625, w: 60, h: 60 },
   },
-  'Give Mercy Boost': {
+  'Give Boost': {
     '1920x1080': { x: 1062, y: 655, w: 68, h: 68 },
     '2560x1080': { x: 1382, y: 655, w: 68, h: 68 },
     '1680x1050': { x: 930, y: 625, w: 60, h: 60 },
@@ -68,9 +71,6 @@ const REGIONS = {
   Overtime: {
     '1920x1080': { x: 900, y: 35, w: 123, h: 39 },
   },
-  'Capture Progress': {
-    '1920x1080': { x: 745, y: 326, w: 428, h: 79 },
-  },
   POTG: {
     '1920x1080': { x: 210, y: 28, w: 94, h: 50 },
     '2560x1080': { x: 210, y: 28, w: 94, h: 50 },
@@ -85,6 +85,12 @@ const REGIONS = {
 };
 
 const DETECTABLES = {
+  "HUD Present": {"filename": "hud_health_reference.png", "template_crop": [17, 10, 33, 29], "template_height": 1440, "region": "Anti Healing", "threshold": 0.9, "match_mode": "legacy", "points": 0, "type": 8, "hud_alternate": "Anti-Healing"},
+  "Menu Watcher": {"filename": "menu_home.png", "menu_resume_delays": {"menu_back.png": 0}, "examples": ["menu_back.png", "menu_home_gray.png", "menu_back_arrow.png"], "template_height": 1440, "match_mode": "legacy", "threshold": 0.9, "region": "Menu Watcher", "points": 0, "type": 7},
+  Overshield: {"filename": "overshield_reference.png", "hud_guard": "HUD Present", "region": "Health Watch", "points": 100, "type": 6, "full_coverage": 0.6954947707160096},
+  'Give Lucio Heal': { filename: 'lucio_heal.png', template_height: 1440, threshold: 0.9, region: 'Give Healing', points: 10, type: 0 },
+  'Give Lucio Boost': { filename: 'lucio_boost.png', template_height: 1440, threshold: 0.9, region: 'Give Boost', points: 10, type: 0 },
+  Ultimate: { filename: 'ultimate_zero.png', template_height: 1440, threshold: 0.95, region: 'Ultimate', points: 0, type: 5, duration: 8, cooldown: 20, confirm_frames: 2, release_ms: 200 },
   KillcamOrPOTG: { filename: 'play_of_the_game.png', threshold: 0.7, region: 'POTG' },
   KillCam:       { filename: 'respawning.png', threshold: 0.7, region: 'Kill Cam' },
   Elimination:   { filename: 'elimination.png', threshold: 0.8, region: 'Popup', points: 25, type: 2, duration: 2.5 },
@@ -111,8 +117,8 @@ const DETECTABLES = {
   'Receive Anti-Heal':   { filename: 'receive_purple_pot.png', threshold: 0.8, region: 'Receive Status Effect', points: -50, type: 0 },
   'Receive Heal Boost':  { filename: 'receive_yellow_pot.png', threshold: 0.8, region: 'Receive Status Effect', points: 20, type: 0 },
   'Receive Immortality': { filename: 'receive_immortality.png', threshold: 0.8, region: 'Receive Status Effect', points: 20, type: 0 },
-  'Give Mercy Heal':     { filename: 'apply_mercy_heal.png', threshold: 0.7, region: 'Give Mercy Heal', points: 10, type: 0 },
-  'Give Mercy Boost':    { filename: 'apply_mercy_boost.png', threshold: 0.7, region: 'Give Mercy Boost', points: 10, type: 0 },
+  'Give Mercy Heal':     { filename: 'apply_mercy_heal.png', threshold: 0.7, region: 'Give Healing', points: 10, type: 0 },
+  'Give Mercy Boost':    { filename: 'apply_mercy_boost.png', threshold: 0.7, region: 'Give Boost', points: 10, type: 0 },
   'Give Harmony Orb':    { filename: 'apply_harmony.png', threshold: 0.9, region: 'Give Harmony Orb', points: 10, type: 0 },
   'Give Discord Orb':    { filename: 'apply_discord.png', threshold: 0.9, region: 'Give Discord Orb', points: 20, type: 0 },
   'Earth Shatter':       { filename: 'earthshatter.png', threshold: 0.7, region: 'Popup', points: 50, type: 0 },
@@ -124,10 +130,9 @@ const DETECTABLES = {
   'Receive Wuyang Initial': { filename: 'receive_wuyang_initial_healing.png', threshold: 0.8, region: 'Popup', points: 20, type: 0 },
   'Anti-Healing':        { filename: 'anti-healing.png', threshold: 0.8, region: 'Anti Healing', points: -50, type: 0 },
   'Overtime':            { filename: 'overtime.png', threshold: 0.3, region: 'Overtime', points: 30, type: 0 },
-  'Capture Progress':    { filename: 'capture_progress.png', threshold: 0.8, region: 'Capture Progress', points: 75, type: 4, duration: 1.5 },
 };
 
-const SAVE_FIELDS = new Set(['points', 'type', 'duration', 'threshold', 'filename', 'region', 'filter', "match_mode", "v2_threshold", "examples", "scale_tolerance", "confirm_frames", "release_ms", "edge_tolerance"]);
+const SAVE_FIELDS = new Set(['template_crop', 'hud_guard', 'hud_alternate', 'menu_resume_delays', 'full_coverage', 'cooldown', 'template_height', 'points', 'type', 'duration', 'threshold', 'filename', 'region', 'filter', "match_mode", "v2_threshold", "examples", "scale_tolerance", "confirm_frames", "release_ms", "edge_tolerance"]);
 
 const DEFAULT_SETTINGS = {
   monitor_number: 1,
@@ -157,6 +162,24 @@ const DEFAULT_SETTINGS = {
   panic_url: '',
 };
 
+
+function migrateSharedZones(data) {
+  const before = JSON.stringify(data);
+  const names = { 'Give Mercy Heal': 'Give Healing', 'Give Mercy Boost': 'Give Boost' };
+  const regions = data.user_regions || {};
+  for (const [oldName, newName] of Object.entries(names)) {
+    if (regions[oldName]) {
+      regions[newName] = {...regions[oldName], ...regions[newName]};
+      delete regions[oldName];
+    }
+  }
+  for (const det of Object.values(data.detectables || {})) {
+    if (names[det.region]) det.region = names[det.region];
+  }
+  if (data.disabled_zones) data.disabled_zones = [...new Set(data.disabled_zones.map(z => names[z] || z))];
+  return JSON.stringify(data) !== before;
+}
+
 class Config {
   constructor(configPath) {
     this.path = configPath || path.join(process.cwd(), 'config.json');
@@ -168,9 +191,11 @@ class Config {
     if (!fs.existsSync(this.path)) return;
     try {
       const data = JSON.parse(fs.readFileSync(this.path, 'utf-8'));
+      const migratedZones = migrateSharedZones(data);
       for (const [key, value] of Object.entries(data)) {
         if (key === 'detectables') {
           for (const [detName, detFields] of Object.entries(value)) {
+            if (detName === 'Capture Progress') continue; // Retired after the in-game UI changed.
             if (this.detectables[detName]) {
               Object.assign(this.detectables[detName], detFields);
             } else {
@@ -203,6 +228,7 @@ class Config {
           repaired = true;
         }
       }
+      if (migratedZones) this.save();
       if (repaired) {
         const backup = this.path + '.before-receive-filter-fix.bak';
         if (!fs.existsSync(backup)) fs.copyFileSync(this.path, backup);
@@ -217,6 +243,8 @@ class Config {
     try { existing = JSON.parse(fs.readFileSync(this.path, 'utf-8')); } catch {}
 
     const out = { ...existing, ...this.settings, detectables: {} };
+    migrateSharedZones(out);
+    if (out.user_regions) delete out.user_regions['Capture Progress'];
     for (const [name, det] of Object.entries(this.detectables)) {
       const userFields = {};
       for (const [k, v] of Object.entries(det)) {
@@ -246,4 +274,4 @@ class Config {
   }
 }
 
-module.exports = { Config, ASPECT_RATIOS, REGIONS, DETECTABLES, DEFAULT_SETTINGS };
+module.exports = { migrateSharedZones, Config, ASPECT_RATIOS, REGIONS, DETECTABLES, DEFAULT_SETTINGS };

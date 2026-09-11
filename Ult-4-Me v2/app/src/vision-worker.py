@@ -60,13 +60,13 @@ def main():
         has_win32 = False
 
     stop_event = threading.Event()
+    reset_event = threading.Event()
     # Listen for commands on stdin in a background thread
     def stdin_listener():
         for line in sys.stdin:
             cmd = line.strip()
             if cmd == "reset":
-                vision.set_score(0)
-                emit({"type": "info", "message": "Score reset to 0"})
+                reset_event.set()
             elif cmd.startswith("{"):
                 try:
                     msg = json.loads(cmd)
@@ -85,6 +85,10 @@ def main():
 
     while not stop_event.is_set():
         try:
+            if reset_event.is_set():
+                reset_event.clear()
+                vision.set_score(0)
+                emit({"type": "info", "message": "Score reset to 0"})
             updated = vision.update()
         except Exception as e:
             emit({"type": "error", "message": str(e)})
@@ -108,7 +112,7 @@ def main():
         # Collect detections
         detections = {}
         for name, ds in vision.get_det_state().items():
-            if ds["count"] > 0 and name != "KillcamOrPOTG":
+            if ds["count"] > 0 and name != "KillcamOrPOTG" and cfg.detectables.get(name, {}).get("type") != 7:
                 detections[name] = ds["count"]
 
         # Collect which regions had matches
@@ -132,6 +136,8 @@ def main():
             "details": vision.match_details,
             "templateErrors": vision.template_errors,
             "owFocused": ow_focused,
+            "menuPaused": vision.menu_paused,
+            "menuResumeSeconds": vision._menu_gate.remaining(time.monotonic()) if vision.menu_paused else 0,
         })
 
 

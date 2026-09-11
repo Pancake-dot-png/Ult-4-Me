@@ -81,6 +81,10 @@ def template_path(root, filename):
 
 def load_examples(root, det, scale, filter_fn=None):
     """Compile once per configuration/resolution. Alpha is never discarded."""
+    reference_height = float(det.get("template_height", 1080))
+    if not np.isfinite(reference_height) or not 480 <= reference_height <= 4320:
+        raise ValueError("Template reference height must be between 480 and 4320")
+    scale *= 1080 / reference_height
     filenames = list(dict.fromkeys([det.get("filename", ""), *det.get("examples", [])]))
     filenames = [f for f in filenames if f]
     if len(filenames) > 6:
@@ -94,6 +98,15 @@ def load_examples(root, det, scale, filter_fn=None):
         raw = cv.imdecode(np.fromfile(template_path(root, filename), dtype=np.uint8), cv.IMREAD_UNCHANGED)
         if raw is None:
             raise ValueError(f"Cannot read template: {filename}")
+        box = det.get("template_crop")
+        if box is not None:
+            if (not isinstance(box, list) or len(box) != 4
+                    or not all(isinstance(v, int) for v in box)):
+                raise ValueError("Template crop must be [x, y, width, height]")
+            x, y, width, height = box
+            if min(x, y) < 0 or min(width, height) < 2 or x + width > raw.shape[1] or y + height > raw.shape[0]:
+                raise ValueError("Template crop is outside the image")
+            raw = raw[y:y + height, x:x + width]
         if raw.ndim == 2:
             raw = cv.cvtColor(raw, cv.COLOR_GRAY2BGR)
         alpha = raw[:, :, 3] if raw.shape[2] == 4 else np.full(raw.shape[:2], 255, np.uint8)

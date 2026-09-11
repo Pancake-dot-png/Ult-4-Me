@@ -25,6 +25,9 @@ ASPECT_RATIOS = {
 # Not user-configurable — tied to Overwatch UI layout.
 
 REGIONS = {
+    "Menu Watcher": {'1920x1080': {'x': 17, 'y': 27, 'w': 96, 'h': 38}},
+    "Health Watch": {'1920x1080': {'x': 166, 'y': 931, 'w': 256, 'h': 18}},
+    "Ultimate": {"1920x1080": {"x": 936, "y": 905, "w": 50, "h": 49}},
     "Popup1": {
         "1920x1080": {"x": 750, "y": 750, "w": 210, "h": 30},
         "2560x1080": {"x": 1070, "y": 750, "w": 210, "h": 30},
@@ -51,12 +54,12 @@ REGIONS = {
         "2560x1080": {"x": 1465, "y": 945, "w": 50, "h": 50},
         "1680x1050": {"x": 1000, "y": 932, "w": 45, "h": 45},
     },
-    "Give Mercy Heal": {
+    "Give Healing": {
         "1920x1080": {"x": 790, "y": 655, "w": 68, "h": 68},
         "2560x1080": {"x": 1110, "y": 655, "w": 68, "h": 68},
         "1680x1050": {"x": 690, "y": 625, "w": 60, "h": 60},
     },
-    "Give Mercy Boost": {
+    "Give Boost": {
         "1920x1080": {"x": 1062, "y": 655, "w": 68, "h": 68},
         "2560x1080": {"x": 1382, "y": 655, "w": 68, "h": 68},
         "1680x1050": {"x": 930, "y": 625, "w": 60, "h": 60},
@@ -80,9 +83,6 @@ REGIONS = {
     },
     "Overtime": {
         "1920x1080": {"x": 900, "y": 35, "w": 123, "h": 39},
-    },
-    "Capture Progress": {
-        "1920x1080": {"x": 745, "y": 326, "w": 428, "h": 79},
     },
     "POTG": {
         "1920x1080": {"x": 210, "y": 28, "w": 94, "h": 50},
@@ -108,6 +108,12 @@ REGIONS = {
 #   2 = Over duration — adds (points/duration) per second for 'duration' seconds
 
 DETECTABLES = {
+    "HUD Present": {'filename': 'hud_health_reference.png', 'template_crop': [17, 10, 33, 29], 'template_height': 1440, 'region': 'Anti Healing', 'threshold': 0.9, 'match_mode': 'legacy', 'points': 0, 'type': 8, 'hud_alternate': 'Anti-Healing'},
+    "Menu Watcher": {'filename': 'menu_home.png', 'menu_resume_delays': {'menu_back.png': 0}, 'examples': ['menu_back.png', 'menu_home_gray.png', 'menu_back_arrow.png'], 'template_height': 1440, 'match_mode': 'legacy', 'threshold': 0.9, 'region': 'Menu Watcher', 'points': 0, 'type': 7},
+    "Overshield": {'filename': 'overshield_reference.png', 'hud_guard': 'HUD Present', 'region': 'Health Watch', 'points': 100, 'type': 6, 'full_coverage': 0.6954947707160096},
+    "Give Lucio Heal": {"filename": "lucio_heal.png", "template_height": 1440, "threshold": 0.9, "region": "Give Healing", "points": 10, "type": 0},
+    "Give Lucio Boost": {"filename": "lucio_boost.png", "template_height": 1440, "threshold": 0.9, "region": "Give Boost", "points": 10, "type": 0},
+    "Ultimate": {"filename": "ultimate_zero.png", "template_height": 1440, "threshold": 0.95, "region": "Ultimate", "points": 0, "type": 5, "duration": 8, "cooldown": 20, "confirm_frames": 2, "release_ms": 200},
     # Killcam / Play of the Game (no points, used to suppress scoring)
     "KillcamOrPOTG": {
         "filename": "play_of_the_game.png",
@@ -163,8 +169,8 @@ DETECTABLES = {
     "Receive Heal Boost":   {"filename": "receive_yellow_pot.png",  "threshold": 0.8, "region": "Receive Status Effect", "points": 20,  "type": 0},
     "Receive Immortality":  {"filename": "receive_immortality.png", "threshold": 0.8, "region": "Receive Status Effect", "points": 20,  "type": 0},
     # Hero-specific (playing as that hero) — NO filter, match raw frame
-    "Give Mercy Heal":   {"filename": "apply_mercy_heal.png",  "threshold": 0.7, "region": "Give Mercy Heal",   "points": 10, "type": 0},
-    "Give Mercy Boost":  {"filename": "apply_mercy_boost.png", "threshold": 0.7, "region": "Give Mercy Boost",  "points": 10, "type": 0},
+    "Give Mercy Heal":   {"filename": "apply_mercy_heal.png",  "threshold": 0.7, "region": "Give Healing",   "points": 10, "type": 0},
+    "Give Mercy Boost":  {"filename": "apply_mercy_boost.png", "threshold": 0.7, "region": "Give Boost",  "points": 10, "type": 0},
     "Give Harmony Orb":  {"filename": "apply_harmony.png",     "threshold": 0.9, "region": "Give Harmony Orb",  "points": 10, "type": 0},
     "Give Discord Orb":  {"filename": "apply_discord.png",     "threshold": 0.9, "region": "Give Discord Orb",  "points": 20, "type": 0},
     # Hero abilities in kill feed — uses popup filter like Elimination
@@ -180,11 +186,10 @@ DETECTABLES = {
     "Anti-Healing":      {"filename": "anti-healing.png",    "threshold": 0.8, "region": "Anti Healing", "points": -50, "type": 0},
     # Game state
     "Overtime":          {"filename": "overtime.png",        "threshold": 0.3, "region": "Overtime", "points": 30, "type": 0},
-    "Capture Progress":  {"filename": "capture_progress.png","threshold": 0.8, "region": "Capture Progress", "points": 75, "type": 4, "duration": 1.5},
 }
 
 # Fields that get saved to config.json (user-tweakable)
-_SAVE_FIELDS = {"points", "type", "duration", "threshold", "filename", "region", "filter", "match_mode", "v2_threshold", "examples", "scale_tolerance", "confirm_frames", "release_ms", "edge_tolerance"}
+_SAVE_FIELDS = {"template_crop", "hud_guard", "hud_alternate", "menu_resume_delays", "full_coverage", "cooldown", "template_height", "points", "type", "duration", "threshold", "filename", "region", "filter", "match_mode", "v2_threshold", "examples", "scale_tolerance", "confirm_frames", "release_ms", "edge_tolerance"}
 
 # ── Default config ───────────────────────────────────────────────────────────
 
@@ -211,6 +216,22 @@ DEFAULT_SETTINGS = {
 }
 
 
+
+SHARED_ZONES = {"Give Mercy Heal": "Give Healing", "Give Mercy Boost": "Give Boost"}
+
+
+def migrate_shared_zones(data):
+    regions = data.get("user_regions", {})
+    for old, new in SHARED_ZONES.items():
+        if old in regions:
+            regions[new] = {**regions.pop(old), **regions.get(new, {})}
+    for det in data.get("detectables", {}).values():
+        if det.get("region") in SHARED_ZONES:
+            det["region"] = SHARED_ZONES[det["region"]]
+    if "disabled_zones" in data:
+        data["disabled_zones"] = list(dict.fromkeys(SHARED_ZONES.get(z, z) for z in data["disabled_zones"]))
+
+
 class Config:
     def __init__(self, path=None):
         self.path = path or CONFIG_FILE
@@ -228,10 +249,14 @@ class Config:
         except (json.JSONDecodeError, OSError):
             return
 
+        migrate_shared_zones(data)
+
         # Merge top-level settings
         for key, value in data.items():
             if key == "detectables":
                 for det_name, det_fields in value.items():
+                    if det_name == "Capture Progress":
+                        continue  # Retired after the in-game UI changed.
                     if det_name in self.detectables:
                         for field, val in det_fields.items():
                             self.detectables[det_name][field] = val
@@ -241,6 +266,8 @@ class Config:
             elif key == "user_regions":
                 # Merge user regions into REGIONS — add/update resolution keys, don't replace
                 for region_name, region_data in value.items():
+                    if region_name == "Capture Progress":
+                        continue
                     if region_name in self.regions:
                         self.regions[region_name].update(region_data)
                     else:
@@ -268,6 +295,8 @@ class Config:
                 save_dict = json.load(source)
         except (OSError, ValueError):
             save_dict = {}
+        migrate_shared_zones(save_dict)
+        save_dict.get("user_regions", {}).pop("Capture Progress", None)
         save_dict.update(deepcopy(self.settings))
         save_dict["detectables"] = {}
         for name, det in self.detectables.items():

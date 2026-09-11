@@ -24,7 +24,6 @@ __pycache__/
 !/templates/apply_mercy_heal.png
 !/templates/assist.png
 !/templates/burning.png
-!/templates/capture_progress.png
 !/templates/deployed_pylon.png
 !/templates/deployed_tree.png
 !/templates/died.png
@@ -59,3 +58,18 @@ __pycache__/
 !/templates/saved.png
 !/templates/sleep_dart.png
 !/templates/throw_big_rock.png
+
+!/templates/ultimate_zero.png
+
+!/templates/lucio_heal.png
+!/templates/lucio_boost.png
+
+!/templates/overshield_reference.png
+
+!/templates/menu_home.png
+!/templates/menu_back.png
+!/templates/menu_home_gray.png
+
+!/templates/menu_back_arrow.png
+
+!/templates/hud_health_reference.png
