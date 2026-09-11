@@ -1,11 +1,38 @@
-# ULT-4-ME
+# ULT-4-ME — Overwatch 2 Haptic Integration
 
-## Download and run
+**ULT-4-ME** is a Windows application that turns **Overwatch 2 gameplay events into real-time haptic feedback** through Intiface-compatible devices.
 
-1. Download the Windows ZIP from the [latest release](https://github.com/Pancake-dot-png/Ult-4-Me/releases/latest). Choose the app ZIP under **Assets**.
-2. Extract the entire ZIP into a folder. Keep all accompanying files and folders together.
-3. Run the included **ULT-4-ME** executable.
-4. Follow setup for your display and device connection.
-5. Test your detection zones in the training range. Use borderless display mode for the overlay.
+Using **real-time computer vision**, ULT-4-ME detects gameplay events such as eliminations, assists, saves, healing, deaths, and status effects. These events contribute to a configurable score that controls the intensity of connected haptic devices.
 
-Python and Node.js are not required for the packaged download.
+ULT-4-ME runs externally using screen capture and computer vision and does not modify Overwatch 2 game files.
+
+## Features
+
+* Real-time Overwatch 2 gameplay detection
+* Computer vision-based event recognition
+* Elimination, assist, save, death, healing, and status-effect detection
+* Configurable event scoring and score decay
+* Intiface Central connectivity
+* Support for compatible haptic devices
+* Adjustable device intensity and output
+* On-screen detection overlay
+* Packaged Windows release — Python and Node.js are not required
+
+## Download ULT-4-ME for Windows
+
+Download the latest Windows build from the **GitHub Releases** page.
+
+1. Download the latest ULT-4-ME Windows ZIP.
+2. Extract the complete ZIP to a folder.
+3. Run `ULT-4-ME V2.exe`.
+4. Start Intiface Central and connect your compatible device.
+5. Configure your display and detection settings.
+6. Test detection in the Overwatch 2 Practice Range.
+
+For best results, run Overwatch 2 in borderless display mode.
+
+## Device Compatibility
+
+ULT-4-ME communicates with supported devices through **Intiface Central** and its compatible device ecosystem.
+
+For advanced users, the application uses the underlying Buttplug.io protocol for device communication.
