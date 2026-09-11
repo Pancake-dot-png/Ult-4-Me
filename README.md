@@ -1,6 +1,6 @@
 # ULT-4-ME — Overwatch 2 Haptic Integration
 
-**ULT-4-ME** is a Windows application that turns **Overwatch 2 gameplay events into real-time haptic feedback** through Intiface-compatible devices.
+**ULT-4-ME** is a Windows application that turns **Overwatch 2 gameplay events into real-time haptic feedback** through Intiface-compatible devices. (I makes your lovense go buzz when you overwatc)
 
 Using **real-time computer vision**, ULT-4-ME detects gameplay events such as eliminations, assists, saves, healing, deaths, and status effects. These events contribute to a configurable score that controls the intensity of connected haptic devices.
 
