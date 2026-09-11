@@ -6,6 +6,20 @@ It uses **real-time computer vision** to recognize **50+ gameplay detections acr
 
 > In simpler terms: it makes your Lovense go buzz when you Overwatch.
 
+---
+
+# Download ULT-4-ME
+
+## Windows
+
+Download the latest version from:
+
+**[ULT-4-ME Releases](https://github.com/Pancake-dot-png/Ult-4-Me/releases/latest)**
+
+For most users, the packaged Windows release is the recommended way to run ULT-4-ME.
+
+---
+
 ULT-4-ME runs externally using screen capture and computer vision. It does **not** modify Overwatch 2 game files, inject code into the game, or require a game mod.
 
 ## Why ULT-4-ME?
@@ -89,18 +103,6 @@ An on-screen overlay can help show what ULT-4-ME is detecting while you play.
 ### Standalone Windows Build
 
 The packaged Windows release does not require users to separately install Python or Node.js.
-
----
-
-# Download ULT-4-ME
-
-## Windows
-
-Download the latest version from:
-
-**[ULT-4-ME Releases](https://github.com/Pancake-dot-png/Ult-4-Me/releases/latest)**
-
-For most users, the packaged Windows release is the recommended way to run ULT-4-ME.
 
 ---
 
