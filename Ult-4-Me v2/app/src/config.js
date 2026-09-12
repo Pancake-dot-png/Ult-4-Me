@@ -145,6 +145,7 @@ const DEFAULT_SETTINGS = {
   lovense_ip: '',
   min_score: 0,
   max_score: 100,
+  max_intensity: 100,
   disabled_zones: [],
   multi_actuator: {
     Nora:    { enabled: true, threshold: 25, max_level: 20 },

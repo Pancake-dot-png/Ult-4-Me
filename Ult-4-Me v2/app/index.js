@@ -122,7 +122,7 @@ function createWindow() {
 ipcMain.handle('get-local-ip', () => getLocalIP());
 
 ipcMain.handle('connect-lovense', async (_, ip) => {
-  lovense = LovenseClient.fromIP(ip, { onLog: msg => log(`[Lovense] ${msg}`) });
+  lovense = LovenseClient.fromIP(ip, { onLog: msg => log(`[Lovense] ${msg}`), maxIntensity: config.get('max_intensity') ?? 100 });
   lovense.onReconnect = () => {
     log('[Lovense] Auto-reconnected');
     win?.webContents.send('lovense-status', true, lovense.toys);
@@ -234,8 +234,16 @@ ipcMain.handle('set-detectable', (_, name, field, value) => {
     config.save();
   }
 });
-ipcMain.handle('set-config', (_, key, value) => {
+ipcMain.handle('set-config', async (_, key, value) => {
+  if (key === 'max_intensity') {
+    if (!Number.isFinite(value)) return;
+    value = Math.max(0, Math.min(100, value));
+  }
   config.set(key, value);
+  if (key === 'max_intensity') {
+    if (lovense) await lovense.setMaxIntensity(value);
+    lastLevel = -1;
+  }
   // Push settings to overlay
   if (overlayWin && !overlayWin.isDestroyed()) {
     if (key === 'show_overlay_mode') {
@@ -409,7 +417,7 @@ function handleVisionMessage(msg) {
     const { score, ping, detections } = msg;
 
     // Send to UI
-    if (Object.keys(detections).length > 0) {
+    if (win && !win.isDestroyed()) {
       win?.webContents.send('detections', detections, score);
     }
     if (win && !win.isDestroyed()) {

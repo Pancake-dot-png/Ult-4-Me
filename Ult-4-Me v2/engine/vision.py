@@ -35,6 +35,7 @@ class Vision:
         # Score
         self.score_over_time = 0
         self.score_instant = 0
+        self._last_score_addition = None
 
         # Type 3 (set score) hold timer
         self._set_score_until = 0
@@ -123,6 +124,7 @@ class Vision:
         set_score_value = 0
         set_score_duration = 0
         frame_delta_points = 0
+        added_points = False
         bonus_now = time.monotonic()
         self._timed_bonuses = {n: b for n, b in self._timed_bonuses.items()
                               if self.config.detectables.get(n, {}).get("type") == 5}
@@ -164,9 +166,11 @@ class Vision:
                 self.score_instant += count * points
             elif det_type == 1:
                 frame_delta_points += count * points
+                added_points |= count * points > 0
             elif det_type == 2:
                 duration = det.get("duration", 1)
                 frame_delta_points += count * points / max(duration, 0.1)
+                added_points |= count * points > 0
 
         # Add hold points (type 4) — active holds contribute to instant score
         now = time.time()
@@ -177,17 +181,23 @@ class Vision:
             self.score_instant += hold["points"]
 
         if set_score_active:
+            self._last_score_addition = bonus_now
             self._set_score_value = set_score_value
             self._set_score_until = now + set_score_duration
             self.score_over_time = set_score_value
             self.score_instant = 0
         elif now < self._set_score_until:
             # Still in hold period
+            self._last_score_addition = bonus_now
             self.score_over_time = self._set_score_value
             self.score_instant = 0
         else:
+            if added_points or self._last_score_addition is None:
+                self._last_score_addition = bonus_now
+            idle = max(0, bonus_now - self._last_score_addition)
+            multiplier = self._decay_multiplier(idle)
             self.score_over_time += delta_time * frame_delta_points
-            self.score_over_time -= delta_time * self.config.get("decay", 100) / 60
+            self.score_over_time -= delta_time * self.config.get("decay", 100) / 60 * multiplier
             self.score_over_time = max(0, self.score_over_time)
 
         # Smooth detection timing
@@ -199,12 +209,22 @@ class Vision:
     def get_score(self):
         return self.score_over_time + self.score_instant
 
+    @staticmethod
+    def _decay_multiplier(idle):
+        """Ramp the base decay rate from 1x at 3s to 2x at 5s and 4x at 8s."""
+        if idle <= 3:
+            return 1.0
+        if idle <= 5:
+            return 1.0 + (idle - 3) / 2
+        return min(4.0, 2.0 + (idle - 5) * 2 / 3)
+
     @property
     def menu_paused(self):
         return self._menu_gate.paused
 
     def _clear_gameplay_state(self):
         self.score_over_time = self.score_instant = 0
+        self._last_score_addition = None
         self._set_score_until = self._set_score_value = 0
         self._holds.clear()
         self._timed_bonuses.clear()

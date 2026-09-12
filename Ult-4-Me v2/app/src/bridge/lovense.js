@@ -30,13 +30,15 @@ function getLocalIP() {
 }
 
 class LovenseClient {
-  constructor({ urls = [], onLog = () => {} } = {}) {
+  constructor({ urls = [], onLog = () => {}, maxIntensity = 100 } = {}) {
     this.urls = urls;
     this.baseUrl = null;
     this.toys = {};       // id -> toy object
     this.connected = false;
     this._pollTimer = null;
     this._log = onLog;
+    this.maxIntensity = this._intensityPercent(maxIntensity);
+    this._activeActions = new Map();
   }
 
   static fromIP(ip = '127.0.0.1', opts = {}) {
@@ -87,31 +89,38 @@ class LovenseClient {
 
   disconnect() {
     this._stopPolling();
+    this._activeActions.clear();
     this.connected = false;
     this.toys = {};
   }
 
   async sendAction(toyId, action, level) {
-    level = Math.max(0, Math.min(20, level));
-    const actionStr = level <= 0 ? 'Stop' : `${action}:${level}`;
-    await this._post({
-      command: 'Function',
-      action: actionStr,
-      timeSec: 0,
-      toy: toyId,
-      apiVer: 1,
-    });
+    return this.sendActions(toyId, [[action, level]]);
+  }
+
+  _intensityPercent(value) {
+    const number = Number(value);
+    return Number.isFinite(number) ? Math.max(0, Math.min(100, number)) : 100;
+  }
+
+  async setMaxIntensity(value) {
+    this.maxIntensity = this._intensityPercent(value);
+    // Reapply ongoing output even when no new detection frame arrives.
+    await Promise.all([...this._activeActions].map(([id, actions]) => this.sendActions(id, actions)));
   }
 
   async sendActions(toyId, actionLevels) {
     // actionLevels: array of [action, level] pairs — sent as one combined command
+    const requested = actionLevels.map(([action, level]) => [action, Number.isFinite(level) ? Math.max(0, Math.min(20, level)) : 0]);
+    if (requested.some(([, level]) => level > 0)) this._activeActions.set(toyId, requested);
+    else this._activeActions.delete(toyId);
     const parts = [];
-    for (const [action, level] of actionLevels) {
-      const l = Math.max(0, Math.min(20, level));
+    for (const [action, level] of requested) {
+      const l = Math.min(Math.floor(20 * this.maxIntensity / 100), Math.round(level * this.maxIntensity / 100));
       if (l > 0) parts.push(`${action}:${l}`);
     }
     if (parts.length === 0) {
-      return this.stopToy(toyId);
+      return this._post({ command: 'Function', action: 'Stop', timeSec: 0, toy: toyId, apiVer: 1 });
     }
     await this._post({
       command: 'Function',
@@ -123,10 +132,12 @@ class LovenseClient {
   }
 
   async stopToy(toyId) {
+    this._activeActions.delete(toyId);
     await this._post({ command: 'Function', action: 'Stop', timeSec: 0, toy: toyId, apiVer: 1 });
   }
 
   async stopAll() {
+    this._activeActions.clear();
     await this._post({ command: 'Function', action: 'Stop', timeSec: 0, apiVer: 1 });
   }
 
@@ -169,7 +180,7 @@ class LovenseClient {
         id: toy.id || tid,
         name,
         nickName: toy.nickName || '',
-        status: toy.status || 0,
+        status: Number(toy.status) === 1 ? 1 : 0,
         battery: toy.battery || 0,
         version: toy.version || '',
         functions: actuators.map(a => a[0]),

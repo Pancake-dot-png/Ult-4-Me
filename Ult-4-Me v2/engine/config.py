@@ -194,6 +194,7 @@ _SAVE_FIELDS = {"template_crop", "hud_guard", "hud_alternate", "menu_resume_dela
 # ── Default config ───────────────────────────────────────────────────────────
 
 DEFAULT_SETTINGS = {
+    "max_intensity": 100,
     "monitor_number": 1,
     "aspect_ratio_index": 0,
     "show_overlay_mode": 0,

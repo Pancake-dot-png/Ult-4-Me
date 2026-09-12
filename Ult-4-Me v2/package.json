@@ -1,11 +1,11 @@
 {
   "name": "ult-4-me-v2",
-  "version": "2.1.0",
+  "version": "2.2.0",
   "description": "ULT-4-ME V2 by Pancakes - Overwatch 2 haptic feedback",
   "main": "app/index.js",
   "scripts": {
     "start": "electron .",
-    "test": "node scripts/check-ui.js && node tests/test_panic_audio.js && node tests/test_detection_without_overlay.js && node tests/test_menu_output.js && .venv\\Scripts\\python.exe -m unittest discover -s tests -v",
+    "test": "node scripts/check-ui.js && node tests/test_detection_log.js && node tests/test_device_status.js && node tests/test_max_intensity.js && node tests/test_panic_audio.js && node tests/test_detection_without_overlay.js && node tests/test_menu_output.js && .venv\\Scripts\\python.exe -m unittest discover -s tests -v",
     "build": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/build.ps1"
   },
   "author": "Pancakes",

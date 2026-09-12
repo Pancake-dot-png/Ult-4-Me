@@ -3,6 +3,7 @@
   "aspect_ratio_index": 0,
   "show_overlay_mode": 1,
   "show_regions_mode": 0,
+  "max_intensity": 100,
   "ignore_spectate": true,
   "ignore_redundant_assists": true,
   "decay": 180,

@@ -12,6 +12,7 @@ let saved=null;
 let savedThreshold=null;
 for(const [channel,fn] of Object.entries({
   'get-config':()=>({settings:config.settings,detectables:config.detectables}),
+  'set-config':(_,key,value)=>{config.settings[key]=value;},
   'get-local-ip':()=>'', 'is-vision-running':()=>false,'get-toys':()=>({}),
   'start-vision':()=>({ok:false,error:'Screen capture disabled in offline smoke test'}),
   'get-mute-status':()=>({muted:false,key:'Delete',url:''}),
@@ -32,7 +33,33 @@ app.whenReady().then(async()=>{
     for(const page of ['app.html','onboarding.html','debug.html','detection-lab.html']){
       await win.loadFile(path.join(root,'app',page));
       await new Promise(r=>setTimeout(r,400));
-      if(page==='app.html')await win.webContents.executeJavaScript("loadAdvanced().then(()=>{if(!document.getElementById('btn-detection-lab'))throw Error('Missing V2 editor button')})");
+      if(page==='app.html'){
+        win.webContents.send('menu-pause',true,5);
+        await new Promise(r=>setTimeout(r,50));
+        await win.webContents.executeJavaScript(`(() => {
+          if(!document.getElementById('app-version-title').textContent.endsWith('v${require('../package.json').version}'))throw Error('Incorrect version title');
+          if(document.getElementById('menu-pause-status').textContent!=='Paused while in menu')throw Error('Incorrect pause label');
+          const image=document.querySelector('img[src="images/friendly-ui-color.png"]');
+          if(!image.complete || !image.naturalWidth)throw Error('Friendly UI reference missing');
+        })()`);
+        await win.webContents.executeJavaScript(`(() => {
+          const slider=document.getElementById('max-intensity');
+          if(slider.disabled || slider.value!=='100')throw Error('Intensity default not loaded');
+          if(!slider.closest('.panel').querySelector('#score-value'))throw Error('Slider outside Score panel');
+          slider.value=50;slider.dispatchEvent(new Event('input'));slider.dispatchEvent(new Event('change'));
+          if(document.getElementById('max-intensity-value').textContent!=='50%')throw Error('Intensity label not updated');
+        })()`);
+        await new Promise(r=>setTimeout(r,100));
+        if(config.settings.max_intensity!==50)throw Error('Intensity not sent to settings');
+        await win.reload();
+        await new Promise(r=>setTimeout(r,400));
+        await win.webContents.executeJavaScript("if(document.getElementById('max-intensity').value!=='50')throw Error('Saved intensity not restored')");
+        fs.writeFileSync(path.join(root,'build/intensity-preview.png'),(await win.webContents.capturePage()).toPNG());
+        await win.webContents.executeJavaScript("document.querySelector('[data-nav=\"settings\"]').click()");
+        await new Promise(r=>setTimeout(r,100));
+        fs.writeFileSync(path.join(root,'build/settings-reference-preview.png'),(await win.webContents.capturePage()).toPNG());
+        await win.webContents.executeJavaScript("loadAdvanced().then(()=>{if(!document.getElementById('btn-detection-lab'))throw Error('Missing V2 editor button')})");
+      }
       if(page==='debug.html'){
         win.webContents.send('debug-frame',{confidence:{Example:.6},details:{Example:{mode:'masked',threshold:.83}}});
         await new Promise(r=>setTimeout(r,100));

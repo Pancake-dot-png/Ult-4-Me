@@ -1007,7 +1007,7 @@ input[type="range"]::-webkit-slider-thumb {
   <!-- Chrome bar -->
   <div class="chrome">
     <img src="pancake.png" style="height:26px;width:auto;-webkit-app-region:no-drag" alt="">
-    <div class="chrome-title">ULT-4-ME by Pancakes &middot; v0.1</div>
+    <div class="chrome-title" id="app-version-title">ULT-4-ME by Pancakes</div>
     <div class="chrome-status">
       <span id="status-text"><b>LOVENSE</b> &middot; DISCONNECTED</span>
       <span style="display:flex;align-items:center;gap:8px"><span class="pulse-dot off" id="status-dot"></span><span id="watcher-text">OFFLINE</span></span>
@@ -1050,6 +1050,11 @@ input[type="range"]::-webkit-slider-thumb {
                   <div class="score-display" id="score-value">0</div>
                   <div class="intensity-bar"><i id="intensity-fill" style="width:0%"></i></div>
                   <div class="intensity-label"><span>0</span><span id="intensity-text">0/20</span><span>20</span></div>
+                  <div style="margin-top:16px">
+                    <label for="max-intensity" style="display:flex;justify-content:space-between;font-size:11px;color:var(--dim)">Max intensity <output id="max-intensity-value" style="color:var(--accent)">100%</output></label>
+                    <input id="max-intensity" type="range" min="0" max="100" step="5" value="100" disabled style="width:100%;margin:10px 0" aria-label="Maximum device intensity">
+                    <div style="font-size:10px;color:var(--dim)">All devices · 0% stops output</div>
+                  </div>
                 </div>
               </div>
 
@@ -1155,9 +1160,10 @@ input[type="range"]::-webkit-slider-thumb {
               <div class="panel-hd"><b>Scoring</b></div>
               <div class="panel-body">
                 <div class="form-row">
-                  <span class="form-label">Decay / min</span>
+                  <span class="form-label">Base decay / min</span>
                   <input type="number" class="form-input" id="tune-decay" min="0" max="999" style="width:80px">
                 </div>
+                <div style="font-size:11px;color:var(--dim);margin-bottom:10px">After 3s without added points, decay ramps up to 2× at 5s and 4× at 8s.</div>
                 <div class="form-row">
                   <span class="form-label">Min score</span>
                   <input type="number" class="form-input" id="tune-min-score" min="0" max="999" style="width:80px">
@@ -1278,6 +1284,16 @@ input[type="range"]::-webkit-slider-thumb {
               </div>
             </div>
 
+            <!-- Overwatch setup -->
+            <div class="panel" style="margin-top:14px">
+              <div class="panel-hd"><b>Overwatch</b> setup</div>
+              <div class="panel-body">
+                <p style="margin:0 0 10px;color:var(--ink);font-size:13px">Friendly UI Color must be set to the default blue for detection to work correctly.</p>
+                <img src="images/friendly-ui-color.png" alt="Overwatch color settings with Friendly UI Color set to default blue" style="display:block;width:100%;height:auto;border-radius:4px">
+              </div>
+            </div>
+
+
           </div>
 
           <div>
@@ -1308,7 +1324,7 @@ input[type="range"]::-webkit-slider-thumb {
                   <div style="margin-bottom:6px">To find your IP:</div>
                   <div style="padding-left:12px">
                     1. Open the <b style="color:var(--ink)">Lovense</b> app on your phone<br>
-                    2. Go to <b style="color:var(--ink)">Discover</b> → <b style="color:var(--ink)">Game Mode</b><br>
+                    2. Go to <b style="color:var(--ink)">Toys Tab</b> → <b style="color:var(--ink)">Game Mode</b><br>
                     3. <b style="color:var(--ink)">Enable LAN</b><br>
                     4. Copy the <b style="color:var(--ink)">Local IP</b> shown
                   </div>
@@ -1332,6 +1348,8 @@ input[type="range"]::-webkit-slider-thumb {
 
 <script>
 const { ipcRenderer } = require('electron');
+const { DetectionLog } = require(require('path').join(__dirname, 'src', 'detection-log.js'));
+document.getElementById('app-version-title').textContent = `ULT-4-ME by Pancakes · v${require(require('path').join(__dirname, '..', 'package.json')).version}`;
 
 // ── State ──
 let connected = false;
@@ -1707,7 +1725,7 @@ ipcRenderer.on('menu-pause', (_, paused, remaining) => {
     document.getElementById('intensity-text').parentElement.appendChild(label);
   }
   label.hidden = !paused;
-  label.textContent = paused ? `Paused — menu detected · resumes after ${Math.ceil(remaining)}s clear` : '';
+  label.textContent = paused ? 'Paused while in menu' : '';
 });
 
 ipcRenderer.on('score', (_, score, ping) => {
@@ -1722,11 +1740,12 @@ ipcRenderer.on('score', (_, score, ping) => {
   document.getElementById('intensity-text').textContent = `${level}/20`;
 });
 
-ipcRenderer.on('detections', (_, detections, score) => {
-  for (const [name, count] of Object.entries(detections)) {
-    addLog(`${name} x${count}  (score: ${Math.round(score)})`, 'det');
-  }
-});
+const detectionLog = new DetectionLog();
+ipcRenderer.on('detections', (_, detections) => detectionLog.observe(detections));
+setInterval(() => {
+  const summary = detectionLog.flush();
+  if (summary) addLog(summary.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;'), 'det');
+}, 1000);
 
 ipcRenderer.on('log', (_, msg) => {
   addLog(msg, 'sys');
@@ -1775,6 +1794,21 @@ function saveSetting(key, value) {
   ipcRenderer.invoke('set-config', key, value);
   addLog(`Setting: ${key} = ${value}`, 'sys');
 }
+
+document.getElementById('max-intensity').oninput = (e) => {
+  document.getElementById('max-intensity-value').textContent = `${e.target.value}%`;
+  ipcRenderer.invoke('set-config', 'max_intensity', Number(e.target.value));
+};
+document.getElementById('max-intensity').onchange = (e) => {
+  addLog(`Max intensity: ${e.target.value}%`, 'sys');
+};
+ipcRenderer.invoke('get-config').then(({settings}) => {
+  const value = Math.max(0, Math.min(100, Number(settings.max_intensity ?? 100)));
+  const slider = document.getElementById('max-intensity');
+  slider.value = Number.isFinite(value) ? value : 100;
+  document.getElementById('max-intensity-value').textContent = `${slider.value}%`;
+  slider.disabled = false;
+});
 
 // Auto-save on change
 document.getElementById('set-monitor').onchange = async (e) => {

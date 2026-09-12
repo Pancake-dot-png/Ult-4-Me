@@ -1,0 +1,17 @@
+const assert = require('assert/strict');
+const {DetectionLog} = require('../app/src/detection-log');
+const log = new DetectionLog();
+for (let i = 0; i < 100; i++) log.observe({Heal: 1});
+assert.equal(log.flush(), 'Heal');
+log.observe({Heal: 1});
+assert.equal(log.flush(), '');
+log.observe({Heal: 1, Elimination: 1});
+log.observe({Heal: 1, Elimination: 2});
+log.observe({Heal: 1});
+log.observe({Heal: 1, Assist: 1});
+assert.equal(log.flush(), 'Elimination ×2 · Assist');
+log.observe({});
+log.observe({Heal: 1});
+assert.equal(log.flush(), 'Heal');
+assert.equal(log.flush(), '');
+console.log('Detection summaries bundle new appearances and suppress repeated active scans.');
