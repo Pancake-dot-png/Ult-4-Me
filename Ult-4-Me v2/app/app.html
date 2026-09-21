@@ -1075,9 +1075,6 @@ input[type="range"]::-webkit-slider-thumb {
                 <div class="log-box" id="log-box" style="height:calc(100vh - 420px);max-height:260px"></div>
               </div>
             </div>
-            <div style="margin-top:10px;display:flex;justify-content:flex-end">
-              <button class="cta" id="btn-restart-app">Restart</button>
-            </div>
           </div>
 
           <!-- Right: Device -->
@@ -1115,7 +1112,7 @@ input[type="range"]::-webkit-slider-thumb {
                   <button class="cta" id="btn-mute-toggle" style="min-width:90px">Panic: OFF</button>
                   <div style="display:flex;align-items:center;gap:6px">
                     <span style="font-size:11px;color:var(--dim);text-transform:uppercase;letter-spacing:.1em">Hotkey</span>
-                    <button class="cta ghost" id="btn-mute-rebind" style="padding:4px 10px;font-size:11px;font-family:'JetBrains Mono','Orbitron',monospace;min-width:60px" title="Click to rebind">Del</button>
+                    <button class="cta ghost" id="btn-mute-rebind" style="padding:4px 10px;font-size:11px;font-family:'JetBrains Mono','Orbitron',monospace;min-width:60px" title="Click to rebind">None</button>
                   </div>
                   <div style="flex:1;display:flex;align-items:center;gap:6px">
                     <span style="font-size:11px;color:var(--dim);text-transform:uppercase;letter-spacing:.1em">URL</span>
@@ -1163,7 +1160,7 @@ input[type="range"]::-webkit-slider-thumb {
                   <span class="form-label">Base decay / min</span>
                   <input type="number" class="form-input" id="tune-decay" min="0" max="999" style="width:80px">
                 </div>
-                <div style="font-size:11px;color:var(--dim);margin-bottom:10px">After 3s without added points, decay ramps up to 2× at 5s and 4× at 8s.</div>
+                <div style="font-size:11px;color:var(--dim);margin-bottom:10px">After 3s without added points, decay ramps to 2× at 5s, then toward 5× through 10s. At 10s, it jumps to 10×.</div>
                 <div class="form-row">
                   <span class="form-label">Min score</span>
                   <input type="number" class="form-input" id="tune-min-score" min="0" max="999" style="width:80px">
@@ -1602,10 +1599,6 @@ document.getElementById('btn-toggle-vision').onclick = async () => {
 document.getElementById('btn-reset-score').onclick = async () => {
   await ipcRenderer.invoke('reset-score');
   addLog('Score reset to 0', 'sys');
-};
-
-document.getElementById('btn-restart-app').onclick = () => {
-  ipcRenderer.send('restart-app');
 };
 
 // ── Manual test ──

@@ -109,7 +109,7 @@ const DETECTABLES = {
   Stunned:       { filename: 'prompt_stunned.png', threshold: 0.5, region: 'Prompt', filter: 'prompt', points: 100, type: 0 },
   Trapped:       { filename: 'prompt_trapped.png', threshold: 0.5, region: 'Prompt', filter: 'prompt', points: 100, type: 0 },
   Grappled:      { filename: 'prompt_grappled.png', threshold: 0.5, region: 'Prompt', filter: 'prompt', points: 10, type: 0 },
-  'Receive Zen Heal':    { filename: 'receive_zen_heal.png', threshold: 0.8, region: 'Receive Heal', points: 10, type: 0 },
+  'Receive Zen Heal':    { filename: 'receive_zen_heal.png', match_mode: 'masked', v2_threshold: 0.85, template_height: 1080, threshold: 0.8, region: 'Receive Heal', points: 10, type: 0 },
   'Receive Mercy Heal':  { filename: 'receive_mercy_heal.png', threshold: 0.8, region: 'Receive Heal', points: 15, type: 0 },
   'Receive Mercy Boost': { filename: 'receive_mercy_boost.png', threshold: 0.8, region: 'Receive Heal', points: 25, type: 0 },
   'Receive Hack':        { filename: 'receive_hack_icon.png', threshold: 0.8, region: 'Receive Status Effect', points: 100, type: 0 },
@@ -159,7 +159,7 @@ const DEFAULT_SETTINGS = {
   theme_family: 'cyberpunk',
   theme_tint: 'pink',
   onboarding_completed: false,
-  mute_key: 'Delete',
+  mute_key: '',
   panic_url: '',
 };
 

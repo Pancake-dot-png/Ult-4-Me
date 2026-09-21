@@ -211,12 +211,14 @@ class Vision:
 
     @staticmethod
     def _decay_multiplier(idle):
-        """Ramp the base decay rate from 1x at 3s to 2x at 5s and 4x at 8s."""
+        """Ramp toward 5x during seconds 5-10, then step to 10x at 10s."""
         if idle <= 3:
             return 1.0
         if idle <= 5:
             return 1.0 + (idle - 3) / 2
-        return min(4.0, 2.0 + (idle - 5) * 2 / 3)
+        if idle < 10:
+            return 2.0 + (idle - 5) * 3 / 5
+        return 10.0
 
     @property
     def menu_paused(self):

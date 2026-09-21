@@ -9,6 +9,7 @@
   "decay": 180,
   "lovense_ip": "",
   "panic_key": "",
+  "mute_key": "",
   "disabled_zones": [],
   "multi_actuator": {
     "Nora": {
@@ -201,7 +202,11 @@
       "threshold": 0.8,
       "region": "Receive Heal",
       "points": 10,
-      "type": 0
+      "type": 0,
+      "match_mode": "masked",
+      "v2_threshold": 0.85,
+      "template_height": 1080,
+      "examples": []
     },
     "Receive Mercy Heal": {
       "filename": "receive_mercy_heal.png",

@@ -33,7 +33,7 @@ class IdleDecayTests(unittest.TestCase):
             self.assertTrue(v.update())
 
     def test_ramps_and_caps_actual_decay(self):
-        for age, multiplier in [(0, 1), (3, 1), (4, 1.5), (5, 2), (6.5, 3), (8, 4), (60, 4)]:
+        for age, multiplier in [(0, 1), (3, 1), (4, 1.5), (5, 2), (7.5, 3.5), (9.99, 4.994), (10, 10), (60, 10)]:
             v = self.make_vision()
             self.tick(v, 100 + age)
             self.assertAlmostEqual(v.score_over_time, 100 - .5 * multiplier)
@@ -57,7 +57,7 @@ class IdleDecayTests(unittest.TestCase):
                               'hold': {'type': 4, 'points': 20, 'duration': 2}})
         self.tick(v, 110, {'heal': 1, 'shield': 1, 'hold': 1}, details={'shield': {'strength': .5}})
         self.assertEqual(v._last_score_addition, 100)
-        self.assertEqual(v.score_over_time, 98)
+        self.assertEqual(v.score_over_time, 95)
         self.assertEqual(v.score_instant, 80)
 
     def test_reset_and_set_score_hold_restart_idle_period(self):

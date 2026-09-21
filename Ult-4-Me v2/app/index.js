@@ -855,7 +855,7 @@ app.whenReady().then(async () => {
   crashLog('App ready');
 
   // Register mute hotkey
-  const savedKey = config.get('mute_key') || 'Delete';
+  const savedKey = config.get('mute_key') || '';
   registerMuteKey(savedKey);
 
   if (config.get('onboarding_completed')) {
