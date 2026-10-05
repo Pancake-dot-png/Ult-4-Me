@@ -1,0 +1,76 @@
+.app.refined.skin-industrial {
+  --accent:#5865f2;--accent-hot:#6875f5;--accent-2:#b7beff;
+  --bg:#313338;--bg-2:#2b2d31;--ink:#f2f3f5;--dim:#b5bac1;--dim-2:#949ba4;
+  --line:#3f4147;--line-2:#45474f;--green:#23a55a;--red:#da373c;
+  background:#313338!important;color:#f2f3f5;font-family:'Segoe UI',Arial,sans-serif;grid-template-rows:32px minmax(0,1fr);
+}
+.app.refined.skin-industrial .chrome {background:#1e1f22;border:0;padding:0 12px;gap:8px}
+.app.refined.skin-industrial .chrome img{height:20px!important}
+.app.refined.skin-industrial .chrome-title{font:600 11px 'Segoe UI',Arial,sans-serif;color:#b5bac1;letter-spacing:0;text-transform:none}
+.app.refined.skin-industrial .chrome-status{font:11px 'Segoe UI',Arial,sans-serif;color:#949ba4;letter-spacing:0;text-transform:none}
+.app.refined.skin-industrial .chrome-status b{color:#b5bac1}
+.app.refined.skin-industrial .win-controls button{color:#b5bac1}
+.app.refined.skin-industrial .win-controls{margin-left:auto}
+.app.refined.skin-industrial .body{grid-template-columns:200px minmax(0,1fr)}
+.app.refined.skin-industrial .rail{background:#2b2d31;border:0;padding:0 8px 12px;gap:0}
+.discord-workspace{height:48px;display:flex;align-items:center;padding:0 8px;border-bottom:1px solid #1f2023;font-weight:700;font-size:15px;margin:0 -8px 18px;gap:10px}
+.discord-category{font:700 10px 'Segoe UI',Arial,sans-serif;letter-spacing:.04em;color:#949ba4;padding:4px 8px 8px;text-transform:uppercase}
+.app.refined.skin-industrial .rail .nav,.app.refined.skin-industrial .rail .rail-foot{gap:3px}
+.app.refined.skin-industrial .rail .nav button,.app.refined.skin-industrial .rail .rail-foot button{height:36px;min-height:36px;padding:0 8px;border:0;border-radius:4px;color:#949ba4;background:transparent;font-size:16px}
+.app.refined.skin-industrial .rail .nav button:hover,.app.refined.skin-industrial .rail .rail-foot button:hover{background:#35373c;color:#dbdee1}
+.app.refined.skin-industrial .rail .nav button.is-active,.app.refined.skin-industrial .rail .rail-foot button.is-active{background:#404249;color:#f2f3f5}
+.app.refined.skin-industrial .rail .nav button.is-active::after{display:none}
+.app.refined.skin-industrial .rail button .nav-label{font:500 14px 'Segoe UI',Arial,sans-serif!important;letter-spacing:0!important}
+.app.refined.skin-industrial .rail button>span>:first-child{color:#80848e;font:600 20px 'Segoe UI',Arial,sans-serif}
+.discord-profile{display:flex;align-items:center;gap:8px;background:#232428;margin:12px -8px -12px;padding:12px 8px;font-size:12px}
+.discord-avatar{width:30px;height:30px;border-radius:50%;display:grid;place-items:center;background:#5865f2;color:#fff;font-weight:700;flex:none}
+.discord-profile small{display:block;color:#b5bac1;margin-top:2px;font-size:10px}
+.app.refined.skin-industrial .main{background:#313338;padding:0 24px 24px}
+.app.refined.skin-industrial .ref-session-heading{height:64px;margin:0 -24px 24px;padding:0 24px;border-bottom:1px solid #26272b}
+.app.refined.skin-industrial .ref-session-heading h1{font:600 16px 'Segoe UI',Arial,sans-serif;letter-spacing:0}
+.app.refined.skin-industrial .ref-session-heading h1::before{content:none}
+.app.refined.skin-industrial .ref-session-heading p{font:12px 'Segoe UI',Arial,sans-serif;margin-top:2px;color:#949ba4}
+.app.refined.skin-industrial .ref-session-heading>span{font:11px 'Segoe UI',Arial,sans-serif;background:#2b2d31;color:#b5bac1;border:0;border-radius:4px}
+.app.refined.skin-industrial .panel{background:#2b2d31;border:1px solid #232428;border-radius:8px;box-shadow:none}
+.app.refined.skin-industrial .panel-hd{border-bottom:1px solid #3f4147;background:transparent;color:#b5bac1;font:600 12px 'Segoe UI',Arial,sans-serif;letter-spacing:.04em}
+.app.refined.skin-industrial .panel-hd b{color:#f2f3f5}
+.app.refined.skin-industrial .panel-body{padding:16px}
+.app.refined.skin-industrial .cta{font:600 13px 'Segoe UI',Arial,sans-serif;letter-spacing:0;text-transform:none;clip-path:none;border-radius:4px;background:#5865f2;color:#fff;padding:10px 16px;border:0;box-shadow:none;transition:background .15s}
+.app.refined.skin-industrial .cta:hover{background:#4752c4;filter:none}
+.app.refined.skin-industrial .cta.ghost{background:#4e5058;color:#fff;border:0}
+.app.refined.skin-industrial .cta.ghost:hover{background:#6d6f78}
+.app.refined.skin-industrial .cta.danger{background:#da373c;color:#fff}
+.app.refined.skin-industrial .cta.danger:hover{background:#a12828}
+.app.refined.skin-industrial .form-label,.app.refined.skin-industrial .score-label{font:600 11px 'Segoe UI',Arial,sans-serif;color:#b5bac1;letter-spacing:.03em}
+.app.refined.skin-industrial .form-input,.app.refined.skin-industrial select{font:14px 'Segoe UI',Arial,sans-serif;color:#dbdee1;background:#1e1f22;border:1px solid transparent;border-radius:4px;padding:10px 12px}
+.app.refined.skin-industrial .form-input::placeholder{color:#949ba4}
+.app.refined.skin-industrial .form-input:focus{border-color:#5865f2;outline:none}
+.app.refined.skin-industrial .score-display{font:700 54px 'Segoe UI',Arial,sans-serif;color:#f2f3f5;text-shadow:none}
+.app.refined.skin-industrial .intensity-label,.app.refined.skin-industrial .log-box,.app.refined.skin-industrial .tag-chip{font-family:'Segoe UI',Arial,sans-serif;color:#b5bac1;letter-spacing:0}
+.app.refined.skin-industrial .log-box{background:#232428;border-radius:4px;padding:12px;line-height:1.7;font-size:12px}
+.app.refined.skin-industrial .log-box .sys{color:#b5bac1}
+.app.refined.skin-industrial .tag-chip{background:#404249;color:#dbdee1;border:0;border-radius:4px;font-size:10px}
+.app.refined.skin-industrial .intensity-bar{height:6px;border-radius:3px;background:#1e1f22}
+.app.refined.skin-industrial .intensity-bar i{background:#5865f2}
+.app.refined.skin-industrial input[type=range]{background:#1e1f22;height:5px;border-radius:3px}
+.app.refined.skin-industrial input[type=range]::-webkit-slider-thumb{background:#fff;border-radius:50%;width:14px;height:14px}
+.app.refined.skin-industrial .ref-secondary{font:12px 'Segoe UI',Arial,sans-serif;color:#b5bac1}
+.app.refined.skin-industrial .ref-secondary summary{font-size:12px}
+.app.refined.skin-industrial .trig-table,.app.refined.skin-industrial .ma-table{font:13px 'Segoe UI',Arial,sans-serif;color:#dbdee1}
+.app.refined.skin-industrial .trig-table th,.app.refined.skin-industrial .ma-table th{font:600 11px 'Segoe UI',Arial,sans-serif;color:#b5bac1;background:#2b2d31;border-bottom-color:#3f4147;letter-spacing:.03em}
+.app.refined.skin-industrial .trig-table td,.app.refined.skin-industrial .ma-table td{border-bottom-color:#3f4147;padding:8px}
+.app.refined.skin-industrial .trig-table input,.app.refined.skin-industrial .ma-table input,.app.refined.skin-industrial .trig-table select{font:13px 'Segoe UI',Arial,sans-serif;background:#1e1f22;color:#dbdee1;border:1px solid #3f4147;border-radius:4px;padding:6px}
+.app.refined.skin-industrial .trig-section{font:600 11px 'Segoe UI',Arial,sans-serif;color:#b5bac1;letter-spacing:.03em}
+.app.refined.skin-industrial .trig-stepper button{background:#4e5058;color:#fff;border:0;border-radius:3px}
+.app.refined.skin-industrial input[type=checkbox]{background:#1e1f22;border:1px solid #80848e;border-radius:4px}
+.app.refined.skin-industrial input[type=checkbox]:checked{background:#5865f2;border-color:#5865f2}
+.app.refined.skin-industrial select option{background:#2b2d31;color:#dbdee1}
+.app.refined.skin-industrial .device-name,.app.refined.skin-industrial .device-info,.app.refined.skin-industrial .ip-prefix{font-family:'Segoe UI',Arial,sans-serif;color:#dbdee1}
+@media(max-width:1100px){.app.refined.skin-industrial .two-col{grid-template-columns:minmax(0,1fr)}.app.refined.skin-industrial .two-col>div:first-child>div:first-child{grid-template-columns:1fr 1fr!important}.app.refined.skin-industrial .chrome-status{display:none}}
+.discord-dashboard{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:16px;align-items:stretch}
+.discord-dashboard .dc-devices,.discord-dashboard .dc-log{grid-column:1/-1}
+.app.refined.skin-industrial .discord-dashboard .score-display{font-size:44px;padding:6px 0}
+.app.refined.skin-industrial .discord-dashboard .panel{min-width:0}
+.app.refined.skin-industrial .discord-dashboard .dc-panic .panel-body>div:first-child{flex-wrap:wrap}
+.app.refined.skin-industrial .discord-dashboard .dc-log #log-box{height:140px!important;max-height:140px}
+@media(min-width:1250px){.discord-dashboard{grid-template-columns:minmax(0,1fr) minmax(0,1fr) minmax(0,1.2fr)}.discord-dashboard .dc-connect{grid-column:3;grid-row:1}.discord-dashboard .dc-panic{grid-column:3;grid-row:2}.discord-dashboard .dc-log{grid-column:1/3;grid-row:2/4}.discord-dashboard .dc-devices{grid-column:3;grid-row:3}}

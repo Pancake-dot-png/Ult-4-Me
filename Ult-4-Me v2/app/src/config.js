@@ -158,6 +158,7 @@ const DEFAULT_SETTINGS = {
   },
   theme_family: 'cyberpunk',
   theme_tint: 'pink',
+  theme_colors: {cyberpunk:'pink',plush:'blush',discord:'dark'},
   onboarding_completed: false,
   mute_key: '',
   panic_url: '',

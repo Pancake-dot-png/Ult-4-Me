@@ -1,0 +1,46 @@
+.app.refined.skin-industrial.discord-light {
+  --bg:#fff;--bg-2:#f2f3f5;--ink:#2e3338;--dim:#4e5058;--dim-2:#5c6069;--line:#d8dadd;--line-2:#d8dadd;--red:#da373c;
+  background:#fff!important;color:#2e3338;
+}
+.app.refined.skin-industrial.discord-light .chrome{background:#e3e5e8}
+.app.refined.skin-industrial.discord-light .chrome-title,.app.refined.skin-industrial.discord-light .chrome-status,.app.refined.skin-industrial.discord-light .chrome-status b,.app.refined.skin-industrial.discord-light .win-controls button{color:#4e5058}
+.app.refined.skin-industrial.discord-light .win-controls button.close:hover{color:#fff}
+.app.refined.skin-industrial.discord-light .rail{background:#f2f3f5}
+.app.refined.skin-industrial.discord-light .discord-workspace{border-bottom-color:#d8dadd;color:#2e3338}
+.app.refined.skin-industrial.discord-light .discord-category{color:#5c6069}
+.app.refined.skin-industrial.discord-light .rail .nav button,.app.refined.skin-industrial.discord-light .rail .rail-foot button{color:#5c6069}
+.app.refined.skin-industrial.discord-light .rail .nav button:hover,.app.refined.skin-industrial.discord-light .rail .rail-foot button:hover{background:#e3e5e8;color:#2e3338}
+.app.refined.skin-industrial.discord-light .rail .nav button.is-active,.app.refined.skin-industrial.discord-light .rail .rail-foot button.is-active{background:#dcdfe3;color:#060607}
+.app.refined.skin-industrial.discord-light .rail button>span>:first-child{color:#6d6f78}
+.app.refined.skin-industrial.discord-light .discord-profile{background:#e3e5e8;color:#2e3338}
+.app.refined.skin-industrial.discord-light .discord-profile small{color:#4e5058}
+.app.refined.skin-industrial.discord-light .main{background:#fff}
+.app.refined.skin-industrial.discord-light .ref-session-heading{border-bottom-color:#e3e5e8}
+.app.refined.skin-industrial.discord-light .ref-session-heading h1{color:#2e3338}
+.app.refined.skin-industrial.discord-light .ref-session-heading p{color:#5c6069}
+.app.refined.skin-industrial.discord-light .ref-session-heading>span{background:#f2f3f5;color:#4e5058}
+.app.refined.skin-industrial.discord-light .panel{background:#f8f9fa;border-color:#e3e5e8}
+.app.refined.skin-industrial.discord-light .panel-hd{border-bottom-color:#e3e5e8;color:#4e5058}
+.app.refined.skin-industrial.discord-light .panel-hd b{color:#2e3338}
+.app.refined.skin-industrial.discord-light .form-label,.app.refined.skin-industrial.discord-light .score-label{color:#4e5058}
+.app.refined.skin-industrial.discord-light .form-input,.app.refined.skin-industrial.discord-light select{background:#e9eaed;color:#2e3338}
+.app.refined.skin-industrial.discord-light .form-input::placeholder{color:#5c6069}
+.app.refined.skin-industrial.discord-light .score-display{color:#2e3338}
+.app.refined.skin-industrial.discord-light .intensity-label,.app.refined.skin-industrial.discord-light .log-box,.app.refined.skin-industrial.discord-light .log-box .sys{color:#4e5058}
+.app.refined.skin-industrial.discord-light .log-box{background:#eef0f2}
+.app.refined.skin-industrial.discord-light .tag-chip{background:#e3e5e8;color:#4e5058}
+.app.refined.skin-industrial.discord-light .intensity-bar,.app.refined.skin-industrial.discord-light input[type=range]{background:#d8dadd}
+.app.refined.skin-industrial.discord-light input[type=range]::-webkit-slider-thumb{background:#5865f2}
+.app.refined.skin-industrial.discord-light .ref-secondary{color:#4e5058}
+.app.refined.skin-industrial.discord-light .cta.ghost{background:#e3e5e8;color:#2e3338}
+.app.refined.skin-industrial.discord-light .cta.ghost:hover{background:#d4d7dc}
+.app.refined.skin-industrial.discord-light .trig-table,.app.refined.skin-industrial.discord-light .ma-table{color:#2e3338}
+.app.refined.skin-industrial.discord-light .trig-table th,.app.refined.skin-industrial.discord-light .ma-table th{color:#4e5058;background:#f2f3f5;border-bottom-color:#d8dadd}
+.app.refined.skin-industrial.discord-light .trig-table td,.app.refined.skin-industrial.discord-light .ma-table td{border-bottom-color:#e3e5e8}
+.app.refined.skin-industrial.discord-light .trig-table input,.app.refined.skin-industrial.discord-light .ma-table input,.app.refined.skin-industrial.discord-light .trig-table select{background:#e9eaed;color:#2e3338;border-color:#d8dadd}
+.app.refined.skin-industrial.discord-light .trig-section{color:#4e5058}
+.app.refined.skin-industrial.discord-light .trig-stepper button{background:#e3e5e8;color:#2e3338}
+.app.refined.skin-industrial.discord-light input[type=checkbox]{background:#fff;border-color:#80848e}
+.app.refined.skin-industrial.discord-light input[type=checkbox]:checked{background:#5865f2;border-color:#5865f2}
+.app.refined.skin-industrial.discord-light select option{background:#fff;color:#2e3338}
+.app.refined.skin-industrial.discord-light .device-name,.app.refined.skin-industrial.discord-light .device-info,.app.refined.skin-industrial.discord-light .ip-prefix{color:#4e5058}
