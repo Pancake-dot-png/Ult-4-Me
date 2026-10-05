@@ -12,7 +12,7 @@ import time
 import threading
 import select
 
-# Add Prototype dir to path for config/vision imports
+# Add the V2 engine directory for config/vision imports.
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', '..', 'engine'))
 
 from config import Config
@@ -22,7 +22,7 @@ from vision import Vision
 def main():
     # Read config path and templates dir from argv
     config_path = sys.argv[1] if len(sys.argv) > 1 else None
-    templates_dir = sys.argv[2] if len(sys.argv) > 2 else os.path.join(os.path.dirname(__file__), '..', '..', '..', 'templates')
+    templates_dir = sys.argv[2] if len(sys.argv) > 2 else os.path.join(os.path.dirname(__file__), '..', '..', 'templates')
 
     cfg = Config(config_path)
     cfg.load()
