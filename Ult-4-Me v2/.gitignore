@@ -1,4 +1,5 @@
-# Publish source and selected template assets; keep personal state local.
+# Track release source and selected assets; keep local experiments and state out.
+# The packaging script separately selects the files included in the release ZIP.
 /*
 !/app/
 !/engine/
@@ -73,3 +74,13 @@ __pycache__/
 !/templates/menu_back_arrow.png
 
 !/templates/hud_health_reference.png
+
+# Scratch files can also appear inside otherwise tracked source folders.
+**/design-preview/
+**/screenshots/
+**/tmp/
+**/temp/
+*.tmp
+*.temp
+*.orig
+*.rej
