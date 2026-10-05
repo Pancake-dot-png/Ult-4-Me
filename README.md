@@ -1,6 +1,7 @@
 # ULT-4-ME — Overwatch 2 Haptic Integration for Lovense & Intiface
 
-The maintained application lives in [Ult-4-Me v2](<Ult-4-Me v2/>). That folder contains the current desktop app, detector, required detection templates, tests, and release tooling. Legacy prototypes, V1 code, and old release configuration files have been removed from the current tree; they remain available in Git history.
+The maintained application lives in [Ult-4-Me v2](<Ult-4-Me v2/>). 
+
 
 For source development and packaging, see the [V2 development instructions](<Ult-4-Me v2/README.md>).
 
