@@ -5,6 +5,7 @@
   "main": "app/index.js",
   "scripts": {
     "start": "electron .",
+    "test:ui": "electron tests/test_ui_refactor_electron.js",
     "test": "node scripts/check-ui.js && node tests/test_detection_log.js && node tests/test_device_status.js && node tests/test_max_intensity.js && node tests/test_panic_audio.js && node tests/test_detection_without_overlay.js && node tests/test_menu_output.js && .venv\\Scripts\\python.exe -m unittest discover -s tests -v",
     "build": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/build.ps1"
   },

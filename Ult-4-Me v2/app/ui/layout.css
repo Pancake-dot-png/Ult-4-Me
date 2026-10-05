@@ -1,0 +1,43 @@
+.app.refined .body { grid-template-columns: 176px minmax(0, 1fr); }
+.app.refined .rail { align-items: stretch; padding: 18px 12px; gap: 0; min-height: 0; }
+.app.refined .rail .rail-mark { flex: none; width: 44px; height: 44px; margin: 0 auto 24px; display: grid; place-items: center; font-family: 'Orbitron', sans-serif; font-size: 12px; line-height: 1; letter-spacing: 0; }
+.app.refined.skin-industrial .rail .rail-mark { font-family: ui-monospace, Consolas, monospace; }
+.app.refined.skin-plush .rail { margin: 12px 0 12px 12px; padding: 18px 10px; }
+.app.refined .rail .nav, .app.refined .rail .rail-foot { display: flex; flex-direction: column; align-items: stretch; gap: 6px; width: 100%; }
+.app.refined .rail .rail-foot { margin-top: auto; padding-top: 24px; }
+.app.refined .rail .nav button, .app.refined .rail .rail-foot button { flex: none; display: flex; flex-direction: row; align-items: center; justify-content: flex-start; width: 100%; height: 44px; min-height: 44px; margin: 0; padding: 0 12px; font-size: 18px; line-height: 1; }
+.app.refined .rail button > span { display: grid !important; grid-template-columns: 20px minmax(0,1fr); align-items: center !important; gap: 10px !important; width: 100%; }
+.app.refined .rail button > span > :first-child { width: 20px; height: 20px; display: grid; place-items: center; font-size: 18px; line-height: 20px; }
+.app.refined .rail button .nav-label { text-align: left; white-space: nowrap; margin: 0; line-height: 20px; }
+.app.refined.skin-plush .rail button { border-radius: 12px; }
+.app.refined.skin-plush .rail .nav button.is-active, .app.refined.skin-plush .rail .rail-foot button.is-active { background: linear-gradient(160deg,color-mix(in oklab,var(--accent) 18%,white),color-mix(in oklab,var(--accent-2) 18%,white)); color: var(--ink); }
+.app.refined.skin-industrial .rail .nav button.is-active::after { right: 3px; }
+.app.refined .main { padding: 24px; }
+.app.refined .ref-session-heading { gap: 16px; }
+.app.refined .ref-session-heading > span { flex: none; white-space: nowrap; }
+.app.refined .two-col { grid-template-columns: minmax(0,1.2fr) minmax(300px,.9fr); gap: 20px; }
+.app.refined .two-col > div { min-width: 0; }
+.app.refined .panel-hd { gap: 8px; flex-wrap: wrap; }
+.app.refined .panel-body { padding: 16px; }
+.app.refined .form-row { gap: 10px; }
+.app.refined .form-label { min-width: 74px; flex: none; }
+.app.refined .form-input { min-width: 0; max-width: 100%; }
+.app.refined #ip-full { width: auto !important; flex: 1; }
+.app.refined .cta { padding: 10px 16px; white-space: nowrap; }
+.app.refined .chrome { gap: 10px; }
+.app.refined .chrome-title { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; letter-spacing: .08em; }
+.app.refined .chrome-status { flex: none; gap: 12px; white-space: nowrap; }
+@media(max-width: 1050px) {
+  .app.refined .body { grid-template-columns: 164px minmax(0,1fr); }
+  .app.refined .main { padding: 20px; }
+  .app.refined .two-col { grid-template-columns: minmax(0,1fr) minmax(280px,.95fr); gap: 16px; }
+  .app.refined .two-col > div:first-child > div:first-child { grid-template-columns: minmax(0,1fr) !important; }
+  .app.refined #log-box { height: 160px !important; }
+  .app.refined .chrome-status { font-size: 10px; gap: 8px; }
+}
+@media(max-height: 660px) {
+  .app.refined .rail { padding-top: 14px; padding-bottom: 14px; }
+  .app.refined .rail .rail-mark { margin-bottom: 16px; }
+  .app.refined .rail .nav, .app.refined .rail .rail-foot { gap: 4px; }
+  .app.refined .rail .rail-foot { padding-top: 16px; }
+}

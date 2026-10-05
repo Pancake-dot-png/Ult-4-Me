@@ -1001,6 +1001,8 @@ input[type="range"]::-webkit-slider-thumb {
   text-transform: uppercase; color: var(--accent-2); padding: 12px 6px 4px; }
 
 </style>
+<link rel="stylesheet" href="ui/refinement.css"><link rel="stylesheet" href="ui/layout.css"><link rel="stylesheet" href="ui/discord.css"><link rel="stylesheet" href="ui/discord-light.css">
+<link rel="stylesheet" href="ui/appearance.css">
 </head>
 <body>
 <div class="app">
@@ -1061,7 +1063,7 @@ input[type="range"]::-webkit-slider-thumb {
               <div class="panel">
                 <div class="panel-hd"><b>Controls</b></div>
                 <div class="panel-body" style="display:flex;flex-direction:column;gap:10px">
-                  <button class="cta" id="btn-toggle-vision">Initialize &#x25B8;</button>
+                  <button class="cta" id="btn-toggle-vision">Start session</button>
                   <button class="cta danger" id="btn-reset-score">Reset score</button>
                   <button class="cta" id="btn-manual-test">Manual test</button>
                   <button class="cta ghost" id="btn-debug-panel" style="font-size:10px">Debug panel</button>
@@ -1082,25 +1084,11 @@ input[type="range"]::-webkit-slider-thumb {
             <div class="panel">
               <div class="panel-hd"><b>Lovense</b> &middot; connect</div>
               <div class="panel-body">
-                <div class="form-row">
-                  <span class="form-label">Network</span>
-                  <span class="ip-prefix" id="ip-prefix">detecting...</span>
-                </div>
-                <div class="form-row">
-                  <span class="form-label">Phone IP</span>
-                  <span class="ip-prefix" id="ip-prefix-input"></span>
-                  <input type="text" class="form-input" id="ip-suffix" placeholder="last digits" style="width:80px">
-                </div>
-                <div class="form-row">
-                  <span class="form-label">Or full IP</span>
-                  <input type="text" class="form-input" id="ip-full" placeholder="127.0.0.1" style="width:200px">
-                </div>
+                <div class="form-row"><label class="form-label" for="ip-full">Phone IP</label><input type="text" class="form-input" id="ip-full" placeholder="192.168.1.100" autocomplete="off" spellcheck="false" aria-label="Phone IP"></div>
                 <div class="form-row" style="margin-top:14px">
                   <button class="cta" id="btn-connect">Connect</button>
-                  <button id="btn-toggle-ip" style="background:transparent;border:1px solid var(--line);color:var(--dim);font-family:'Orbitron';font-size:8px;letter-spacing:.15em;padding:4px 8px;cursor:pointer;text-transform:uppercase">Show</button>
                   <span id="connect-status" style="font-size:13px;color:var(--dim)"></span>
                   <div style="flex:1"></div>
-                  <button class="cta ghost" id="btn-lovense-help" style="padding:4px 10px;font-size:9px">Help</button>
                 </div>
               </div>
             </div>
@@ -1346,6 +1334,8 @@ input[type="range"]::-webkit-slider-thumb {
 <script>
 const { ipcRenderer } = require('electron');
 const { DetectionLog } = require(require('path').join(__dirname, 'src', 'detection-log.js'));
+const {installLayout} = require(require('path').join(__dirname, 'src', 'ui-layout.js'));
+const setThemeLayout = installLayout(document);
 document.getElementById('app-version-title').textContent = `ULT-4-ME by Pancakes · v${require(require('path').join(__dirname, '..', 'package.json')).version}`;
 
 // ── State ──
@@ -1370,73 +1360,23 @@ document.getElementById('btn-close').onclick = () => ipcRenderer.send('win-close
 
 // ── Lovense connect ──
 async function init() {
-  const ip = await ipcRenderer.invoke('get-local-ip');
-  if (ip) {
-    const prefix = ip.split('.').slice(0, 3).join('.');
-    document.getElementById('ip-prefix').textContent = `${prefix}.x`;
-    document.getElementById('ip-prefix-input').textContent = `${prefix}.`;
-  } else {
-    document.getElementById('ip-prefix').textContent = 'Could not detect';
-  }
-
-  // Prepopulate from saved config
   const cfg = await ipcRenderer.invoke('get-config');
   const savedIP = cfg.settings.lovense_ip || '';
-  if (savedIP && savedIP !== '127.0.0.1') {
-    const lastDigits = savedIP.split('.').pop();
-    document.getElementById('ip-suffix').value = lastDigits;
-    document.getElementById('ip-full').value = savedIP;
-  }
+  if (savedIP && savedIP !== '127.0.0.1') document.getElementById('ip-full').value = savedIP;
 }
-// ── IP censoring ──
-let ipVisible = false;
-const ipFields = () => [
-  document.getElementById('ip-prefix'),
-  document.getElementById('ip-prefix-input'),
-  document.getElementById('ip-suffix'),
-  document.getElementById('ip-full'),
-];
-
-function setIPVisibility(show) {
-  ipVisible = show;
-  const suffix = document.getElementById('ip-suffix');
-  const full = document.getElementById('ip-full');
-  const prefix = document.getElementById('ip-prefix');
-  const prefixInput = document.getElementById('ip-prefix-input');
-
-  if (show) {
-    suffix.type = 'text';
-    full.type = 'text';
-    prefix.style.filter = 'none';
-    prefixInput.style.filter = 'none';
-    document.getElementById('btn-toggle-ip').textContent = 'Hide';
-  } else {
-    suffix.type = 'password';
-    full.type = 'password';
-    prefix.style.filter = 'blur(5px)';
-    prefixInput.style.filter = 'blur(5px)';
-    document.getElementById('btn-toggle-ip').textContent = 'Show';
-  }
-}
-
-document.getElementById('btn-toggle-ip').onclick = () => setIPVisibility(!ipVisible);
-
-// Hide IP when window loses focus
-window.addEventListener('blur', () => setIPVisibility(false));
-
 init().then(async () => {
-  setIPVisibility(false);
   // Apply saved theme on startup
   const cfg = await ipcRenderer.invoke('get-config');
   const family = cfg.settings.theme_family || 'cyberpunk';
   const tint = cfg.settings.theme_tint || 'pink';
+  themeColors=readThemeColors(cfg.settings.theme_colors);
   applyTheme(family, tint);
   // Check if vision is already running (e.g. returning from panic mode)
   const alreadyRunning = await ipcRenderer.invoke('is-vision-running');
   if (alreadyRunning) {
     watcherRunning = true;
     const btn = document.getElementById('btn-toggle-vision');
-    btn.textContent = 'Stop';
+    btn.textContent = 'Stop session';
     btn.className = 'cta ghost';
     document.getElementById('status-dot').className = 'pulse-dot live';
     document.getElementById('watcher-text').textContent = 'WATCHER LIVE';
@@ -1464,19 +1404,11 @@ document.getElementById('btn-connect').onclick = async () => {
   }
 
   // Connect
-  const suffix = document.getElementById('ip-suffix').value.trim();
-  const full = document.getElementById('ip-full').value.trim();
-  const prefix = document.getElementById('ip-prefix-input').textContent;
-
-  let ip;
-  if (full) {
-    ip = full;
-  } else if (suffix && prefix) {
-    ip = prefix + suffix;
-  } else {
-    ip = '127.0.0.1';
+  const ip = document.getElementById('ip-full').value.trim();
+  if (!ip) { document.getElementById('connect-status').textContent = 'Enter your phone IP.'; document.getElementById('ip-full').focus(); return; }
+  if (!/^\d{1,3}(\.\d{1,3}){3}$/.test(ip) || ip.split('.').some(part => Number(part) > 255)) {
+    document.getElementById('connect-status').textContent = 'Enter a valid IPv4 address.'; return;
   }
-
   document.getElementById('connect-status').textContent = 'Connecting...';
   btn.disabled = true;
 
@@ -1575,7 +1507,7 @@ document.getElementById('btn-toggle-vision').onclick = async () => {
     const result = await ipcRenderer.invoke('start-vision');
     if (result.ok) {
       watcherRunning = true;
-      btn.textContent = 'Stop';
+      btn.textContent = 'Stop session';
       btn.classList.add('ghost');
       btn.classList.remove('cta');
       btn.className = 'cta ghost';
@@ -1588,7 +1520,7 @@ document.getElementById('btn-toggle-vision').onclick = async () => {
   } else {
     await ipcRenderer.invoke('stop-vision');
     watcherRunning = false;
-    btn.textContent = 'Initialize \u25B8';
+    btn.textContent = 'Start session';
     btn.className = 'cta';
     document.getElementById('status-dot').className = 'pulse-dot off';
     document.getElementById('watcher-text').textContent = 'OFFLINE';
@@ -1636,8 +1568,8 @@ muteBtn.onclick = async () => {
 };
 
 function updateMuteUI(muted) {
-  muteBtn.textContent = `Panic: ${muted ? 'ON' : 'OFF'}`;
-  muteBtn.className = muted ? 'cta danger' : 'cta';
+  muteBtn.textContent = muted ? 'Resume output' : 'Emergency mute';
+  muteBtn.className = muted ? 'cta ghost' : 'cta danger';
 }
 
 ipcRenderer.on('mute-status', (_, muted) => updateMuteUI(muted));
@@ -1837,15 +1769,6 @@ document.getElementById('set-ignore-assists').onchange = async (e) => {
     addLog(`Ignore redundant assists: ${e.target.checked ? 'ON' : 'OFF'}, watcher restarted`, 'sys');
   }
 };
-document.getElementById('btn-lovense-help').onclick = () => {
-  // Switch to settings tab
-  document.querySelectorAll('[data-nav]').forEach(b => b.classList.remove('is-active'));
-  document.querySelector('[data-nav="settings"]').classList.add('is-active');
-  document.querySelectorAll('[id^="page-"]').forEach(p => p.style.display = 'none');
-  document.getElementById('page-settings').style.display = '';
-  loadSettings();
-};
-
 document.getElementById('btn-save-ip').onclick = () => {
   const ip = document.getElementById('set-lovense-ip').value.trim();
   saveSetting('lovense_ip', ip);
@@ -2071,26 +1994,8 @@ document.getElementById('btn-save-triggers').onclick = async () => {
 };
 
 // ── Themes ──
-const UW_THEMES = {
-  cyberpunk: {
-    pink:  { accent: '#ff1f8f', accent2: '#00f0ff', bg: '#07030d', bg2: '#0d0717', ink: '#f4e8ff', label: 'Neon' },
-    blue:  { accent: '#1f7fff', accent2: '#ff1f8f', bg: '#03060d', bg2: '#07101a', ink: '#f4e8ff', label: 'Cryo' },
-    green: { accent: '#1fd97a', accent2: '#ffe53a', bg: '#03100a', bg2: '#071a12', ink: '#f4e8ff', label: 'MtnDew' },
-    blood: { accent: '#dc1432', accent2: '#d8d0cc', bg: '#050203', bg2: '#0c0506', ink: '#e8e0dc', label: 'Blood' },
-  },
-  plush: {
-    blush:  { accent: '#ff7ab8', accent2: '#c9aaf0', bg: '#fff5f9', bg2: '#ffeaf3', ink: '#5a2a4a', label: 'Blush' },
-    cotton: { accent: '#7abdff', accent2: '#e8a8c8', bg: '#f1f7ff', bg2: '#e6f0ff', ink: '#2a3a5a', label: 'Cotton' },
-    lilac:  { accent: '#b07aff', accent2: '#ffaae0', bg: '#f8f2ff', bg2: '#f0e8ff', ink: '#3a2a5a', label: 'Lilac' },
-    butter: { accent: '#efd442', accent2: '#965f37', bg: '#fffbf0', bg2: '#fff5e0', ink: '#5a4a2a', label: 'Daisy' },
-  },
-  industrial: {
-    trail:   { accent: '#c45a2c', accent2: '#8a3a1a', bg: '#f5f0e8', bg2: '#ede7dd', ink: '#1a1a1e', label: 'Trail' },
-    summit:  { accent: '#2d6b4f', accent2: '#1a4a34', bg: '#eef3f0', bg2: '#e5ece8', ink: '#1a1a1e', label: 'Summit' },
-    graphite:{ accent: '#8a8a90', accent2: '#5a5a60', bg: '#1a1a1e', bg2: '#141416', ink: '#d8d8dc', label: 'Graphite', dark: true },
-    depths:  { accent: '#4a8ab0', accent2: '#2a5a7a', bg: '#0e1a24', bg2: '#0a1218', ink: '#c0d4e4', label: 'Depths', dark: true },
-  },
-};
+const {THEMES:UW_THEMES,readThemeColors,styleThemePreview}=require(require('path').join(__dirname,'src','theme-previews.js'));
+let themeColors=readThemeColors();
 
 let currentFamily = 'cyberpunk';
 let currentTint = 'pink';
@@ -2098,146 +2003,34 @@ let currentTint = 'pink';
 const SKIN_FAMILIES = [
   { key: 'cyberpunk', label: 'CYBERPUNK', sublabel: 'glitch · scanlines · neon', rowClass: 'sk-row-cyberpunk' },
   { key: 'plush', label: 'PLUSH PASTEL', sublabel: 'soft · rounded · gradient', rowClass: 'sk-row-plush' },
-  { key: 'industrial', label: 'INDUSTRIAL LAB', sublabel: 'mono · tactical · readouts', rowClass: 'sk-row-industrial' },
+  { key: 'discord', label: 'DISCORD', sublabel: 'Light · Dark', rowClass: 'sk-row-industrial' },
 ];
 
+function normalizeTheme(family,tint) {
+  if(family==='industrial'){family='discord';tint=['graphite','depths'].includes(tint)?'dark':'light';}
+  if(!UW_THEMES[family])family='cyberpunk';
+  if(!UW_THEMES[family][tint])tint=Object.keys(UW_THEMES[family])[0];
+  return {family,tint};
+}
 function buildSkinRows() {
-  const container = document.getElementById('skin-rows');
-  container.innerHTML = '';
-  container.className = 'sk-rows';
-
-  SKIN_FAMILIES.forEach(fam => {
-    const tints = Object.entries(UW_THEMES[fam.key]);
-    const wordmark = fam.key === 'plush' ? 'ult-4-me' : 'ULT-4-ME';
-    const row = document.createElement('div');
-    row.className = `sk-row ${fam.rowClass} ${currentFamily === fam.key ? 'is-selected' : ''} ${currentFamily && currentFamily !== fam.key ? 'is-dimmed' : ''}`;
-    row.dataset.hoverIdx = '';
-
-    if (currentFamily === fam.key) {
-      const selIdx = tints.findIndex(([k]) => k === currentTint);
-      row.dataset.hoverIdx = String(selIdx >= 0 ? selIdx : 0);
-      const t = tints[selIdx >= 0 ? selIdx : 0][1];
-      row.style.setProperty('--row-accent', t.accent);
-    }
-
-    row.innerHTML = `
-      <div class="sk-row-bg"></div>
-      <div class="sk-track-anchor">
-        <div class="sk-zones">${tints.map(([k, t], i) => `<button class="sk-zone" data-fam="${fam.key}" data-tint="${k}" data-idx="${i}"></button>`).join('')}</div>
-        <div class="sk-track">
-          <span class="sk-track-sizer">${wordmark}</span>
-          <div class="sk-wordmark-stack">
-            ${tints.map(([k, t], i) => `<div class="sk-wordmark sk-w-${i}" style="color:${t.accent}">${wordmark}</div>`).join('')}
-          </div>
-          <svg class="sk-dividers" viewBox="0 0 440 78" preserveAspectRatio="none"></svg>
-        </div>
-      </div>
-      <div class="sk-row-label"><strong>${fam.label}</strong><small>${fam.sublabel}</small></div>
-      <div class="sk-row-chips">${tints.map(([k, t]) => `<span style="background:${t.accent}"></span>`).join('')}</div>
-      <div class="sk-row-tint"><strong></strong></div>
-      <div class="sk-row-check" style="background:${tints[0][1].accent}">✓</div>
-    `;
-    container.appendChild(row);
-
-    // Draw dividers
-    requestAnimationFrame(() => {
-      const track = row.querySelector('.sk-track');
-      if (!track) return;
-      const rect = track.getBoundingClientRect();
-      const tw = rect.width, th = rect.height;
-      const svg = row.querySelector('.sk-dividers');
-      svg.setAttribute('viewBox', `0 0 ${tw} ${th}`);
-      const splits = [[0.195, 0.305], [0.445, 0.555], [0.695, 0.805]];
-      const rowRect = row.getBoundingClientRect();
-      const trackLeft = rect.left - rowRect.left;
-      splits.forEach(([topPct, botPct]) => {
-        const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
-        line.setAttribute('x1', tw * topPct); line.setAttribute('y1', 0);
-        line.setAttribute('x2', tw * botPct); line.setAttribute('y2', th);
-        line.setAttribute('stroke', 'currentColor'); line.setAttribute('stroke-width', '2');
-        line.setAttribute('vector-effect', 'non-scaling-stroke');
-        svg.appendChild(line);
-      });
-      if (fam.key === 'industrial') {
-        const split = splits[1];
-        const topX = ((trackLeft + tw * split[0]) / rowRect.width * 100).toFixed(1);
-        const botX = ((trackLeft + tw * split[1]) / rowRect.width * 100).toFixed(1);
-        row.querySelector('.sk-row-bg').style.setProperty('--dark-clip',
-          `polygon(${topX}% 0, 100% 0, 100% 100%, ${botX}% 100%)`);
-      }
-    });
-
-    // Events
-    const tintLabel = row.querySelector('.sk-row-tint strong');
-    const tintContainer = row.querySelector('.sk-row-tint');
-    const chips = row.querySelectorAll('.sk-row-chips span');
-
-    row.querySelectorAll('.sk-zone').forEach(zone => {
-      zone.addEventListener('mouseenter', () => {
-        const idx = zone.dataset.idx;
-        const t = tints[parseInt(idx)][1];
-        row.dataset.hoverIdx = idx;
-        tintLabel.textContent = t.label;
-        tintContainer.style.opacity = '1';
-        tintContainer.style.color = t.accent;
-        row.style.setProperty('--row-accent', t.accent);
-        chips.forEach((c, ci) => c.classList.toggle('active', ci === parseInt(idx)));
-        if (fam.key === 'industrial') {
-          if (t.dark) {
-            row.classList.remove('hide-dark');
-            row.classList.add('show-full-dark');
-            row.querySelector('.sk-row-label').style.color = t.ink;
-          } else {
-            row.classList.add('hide-dark');
-            row.classList.remove('show-full-dark');
-            row.querySelector('.sk-row-label').style.color = '';
-          }
-        }
-      });
-      zone.addEventListener('mouseleave', () => {
-        if (currentFamily === fam.key && currentTint) {
-          const selIdx = tints.findIndex(([k]) => k === currentTint);
-          const selT = tints[selIdx]?.[1];
-          row.dataset.hoverIdx = String(selIdx);
-          // Restore selected tint label, color, chips
-          tintLabel.textContent = selT.label;
-          tintContainer.style.color = selT.accent;
-          row.style.setProperty('--row-accent', selT.accent);
-          chips.forEach((c, ci) => c.classList.toggle('active', ci === selIdx));
-          if (fam.key === 'industrial') {
-            if (selT?.dark) {
-              row.classList.remove('hide-dark');
-              row.classList.add('show-full-dark');
-              row.querySelector('.sk-row-label').style.color = selT.ink;
-            } else {
-              row.classList.add('hide-dark');
-              row.classList.remove('show-full-dark');
-              row.querySelector('.sk-row-label').style.color = '';
-            }
-          }
-        } else {
-          chips.forEach(c => c.classList.remove('active'));
-          row.dataset.hoverIdx = '';
-          tintContainer.style.opacity = '0';
-          row.querySelector('.sk-row-label').style.color = '';
-          if (fam.key === 'industrial') {
-            row.classList.remove('hide-dark', 'show-full-dark');
-          }
-        }
-      });
-      zone.addEventListener('click', () => {
-        currentFamily = fam.key;
-        currentTint = zone.dataset.tint;
-        applyTheme(fam.key, zone.dataset.tint);
-        saveSetting('theme_family', fam.key);
-        saveSetting('theme_tint', zone.dataset.tint);
-        buildSkinRows();
-      });
-    });
+  const selected=normalizeTheme(currentFamily,currentTint);currentFamily=selected.family;currentTint=selected.tint;
+  const container=document.getElementById('skin-rows');container.innerHTML='';container.className='appearance-families';
+  SKIN_FAMILIES.forEach(fam=>{
+    const section=document.createElement('section');section.className='appearance-family';section.dataset.theme=fam.key;section.dataset.active=String(currentFamily===fam.key);styleThemePreview(section,fam.key,themeColors[fam.key]);
+    const title=document.createElement('h2');title.textContent=fam.label;section.append(title);
+    const palette=document.createElement('div');palette.className='appearance-palette';section.append(palette);
+    Object.entries(UW_THEMES[fam.key]).forEach(([key,theme])=>{
+      const button=document.createElement('button');button.type='button';button.className='appearance-variant';
+      button.setAttribute('aria-pressed',String(themeColors[fam.key]===key));
+      button.setAttribute('aria-label',fam.label+' '+theme.label);button.title=theme.label;
+      const swatch=document.createElement('i');swatch.style.background=fam.key==='discord'?'linear-gradient(90deg,'+(key==='dark'?'#17181c 50%,#5865f2 50%':'#ffffff 50%,#5865f2 50%')+')':theme.accent;button.append(swatch);
+      button.onclick=()=>{applyTheme(fam.key,key);saveSetting('theme_family',fam.key);saveSetting('theme_tint',key);saveSetting('theme_colors',{...themeColors});buildSkinRows();};palette.append(button);
+    });container.append(section);
   });
 }
 
 function applyTheme(family, tint) {
+  ({family,tint}=normalizeTheme(family,tint));currentFamily=family;currentTint=tint;themeColors[family]=tint;
   const t = UW_THEMES[family]?.[tint];
   if (!t) return;
   const appEl = document.querySelector('.app');
@@ -2262,7 +2055,7 @@ function applyTheme(family, tint) {
       radial-gradient(circle at 8% 90%, color-mix(in oklab, ${t.accent2} 30%, transparent), transparent 50%),
       linear-gradient(180deg, ${t.bg} 0%, ${t.bg2} 100%)
     `;
-  } else if (family === 'industrial') {
+  } else if (family === 'discord') {
     appEl.classList.add('skin-industrial');
     const root = document.documentElement;
     root.style.setProperty('--accent', t.accent);
@@ -2316,6 +2109,10 @@ function applyTheme(family, tint) {
     `;
   }
 
+  appEl.classList.toggle('discord-light',family==='discord'&&tint==='light');
+  appEl.style.setProperty('--ref-ink',t.ink);appEl.style.setProperty('--ref-bg',t.bg2);
+  if(family==='discord') ['--bg','--ink','--dim','--dim-2','--line','--green','--red'].forEach(key=>appEl.style.removeProperty(key));
+  setThemeLayout(family==='discord');
   // Swatches
   document.getElementById('theme-swatch-1').style.background = t.accent;
   document.getElementById('theme-swatch-2').style.background = t.accent2;
@@ -2323,8 +2120,8 @@ function applyTheme(family, tint) {
   // Force UW mark color update
   const mark = document.querySelector('.rail-mark');
   if (mark) {
-    mark.style.background = family === 'plush' ? t.accent : '';
-    mark.style.boxShadow = family === 'plush' ? `0 8px 20px -8px ${t.accent}` : '';
+    mark.style.background = '';
+    mark.style.boxShadow = '';
   }
 }
 
