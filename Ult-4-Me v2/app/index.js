@@ -269,7 +269,7 @@ ipcMain.handle('is-vision-running', () => visionProcess !== null);
 ipcMain.handle('start-vision', async () => {
   if (visionProcess) return { ok: false, error: 'Already running' };
 
-  // Use the Prototype config (snake_case keys match Python Config class)
+  // Use the V2 config (snake_case keys match the Python Config class).
   const configPath = CONFIG_PATH;
   const templatesDir = TEMPLATES_DIR;
 

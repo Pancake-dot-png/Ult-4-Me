@@ -32,7 +32,11 @@ const {Config} = require('../app/src/config');
 const os = require('os');
 const legacyFolder = fs.mkdtempSync(path.join(os.tmpdir(), 'ult-legacy-test-'));
 const legacyPath = path.join(legacyFolder, 'config.json');
-fs.copyFileSync(path.join(__dirname, '../../releases/v1.3-settings.json'), legacyPath);
+// Keep legacy migration coverage without shipping an obsolete release config.
+fs.writeFileSync(legacyPath, JSON.stringify({detectables: Object.fromEntries(
+  ['Receive Mercy Heal', 'Receive Mercy Boost', 'Receive Immortality'].map(name =>
+    [name, {filter: 'edge', threshold: .8}])
+)}));
 try {
 const cfg = new Config(legacyPath);
 cfg.load();
